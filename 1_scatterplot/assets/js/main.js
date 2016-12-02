@@ -27,8 +27,6 @@ $(document).ready(function() {
 	// load a csv file, parse is the callback function
 	load_csv("../data/"+ sources[source].data, parse);
 
-	create_graph();
-
 	// parse and display data
 	function parse(string){
 		var data = d3.csvParse(string); // parse CSV with D3
@@ -43,7 +41,7 @@ $(document).ready(function() {
 
 
 /* 
- *	PROPERTIES 
+ *	SCATTERPLOT PROPERTIES 
  */
 var width = 1000, height = 500, 
 	margin = { top: 20, right: 20, bottom: 50, left: 50 },
@@ -62,43 +60,31 @@ var svg = d3.select("#chart")
 		.attr("height", height)
 		.attr("margin", margin.top);
 
-function create_graph(){
-
-
-}
-
-
-
-
+// create div for the tooltip
+var tooltip = d3.select("body").append("div")	
+    .attr("class", "tooltip")				
+    .style("opacity", 0);
 
 /**
- *	D3 Scatterplot
- *	x: census estimate
- *	y: CV
+ *	D3 SCATTERPLOT
+ *	x: CV
+ *	y: census estimate
  */
-
 function update_graph(data,x_col,y_col,slice=10){
 
 	if (slice) data = data.slice(0,slice); 	// only show a selection of the data 
 	var keys = return_keys(data);			// get the keys to make labels, etc.
+	svg.selectAll("*").remove();			// remove existing elements
 
 
 	/* 
-	 *	CREATE VIZ 
+	 *	CREATE SCALES 
 	 */
-
-	 // remove existing elements
-	svg.selectAll("*").remove();
-	
-	// add circles
-	svg.selectAll("circle") // select all circles that * will * exist
-		.data(data) 		// for each data execute the following ...
-			.enter()			// compare DOM to data, add elements as needed
-			.append("circle"); 	// append circle element
 
 	// set X min, max
 	var x_extent = d3.extent(data, function(d){ return parseFloat(d[x_col]) });
 	x_extent[0] = -.01; // tweak X axis to allow -0
+
 	// function to map X data (input) onto X range (output)
 	var x_scale = d3.scaleLinear()
 		.range([margin.left,width-margin.right])
@@ -106,13 +92,25 @@ function update_graph(data,x_col,y_col,slice=10){
 
 	// set Y min, max
 	var y_extent = d3.extent(data, function(d){ return d[y_col] });
+
 	// function to map Y data (input) onto Y range (output)
 	var y_scale = d3.scaleLinear()
 		.range([height-margin.bottom, margin.top])
 		.domain(y_extent);
 
+
+	/* 
+	 *	CREATE VIZ 
+	 */	
+
 	// add circles
-	d3.selectAll("circle")
+	var circles = svg.selectAll("circle") 	// select all circles that * will * exist
+		.data(data) 						// bind/loop through data and execute the following ...
+			.enter()						// compare DOM to data, add placeholder elements as needed
+			.append("circle") 				// append circle element to DOM
+	
+	// circle attributes
+	circles
 		.attr("cx", function(d){ return x_scale( parseFloat(d[x_col]) ) })
 		.attr("cy", function(d){ return y_scale( parseFloat(d[y_col]) ) })	
 		.attr("r", minR)
@@ -122,44 +120,31 @@ function update_graph(data,x_col,y_col,slice=10){
 
 	// add an entry animation
 	var enter_duration = 500; 
-	d3.selectAll("circle")
-		.transition()
-		.delay(function(d, i) { return i / data.length * enter_duration; }) 
+	circles
+		//.transition()
+		//.delay(function(d, i) { return i / data.length * enter_duration; }) 
 		.style("opacity", .9);
 
-	// create div for the tooltip
-	var tooltip = d3.select("body").append("div")	
-	    .attr("class", "tooltip")				
-	    .style("opacity", 0);
-
 	// add circle interaction
-	svg.selectAll("circle")	
+	circles
+		// show tooltip
 		.on("mouseover", function(d) {
 			//console.log(d3.select(this).attr("id")); // log circle id
-
-			// change circle
-			d3.select(this).transition()
-				//.attr("r", maxR);
-				.style("opacity", .9);
-			// show tooltip
-			tooltip.transition()
+			tooltip.transition()		
 				.duration(200)
 				.style("opacity", .9);
 			tooltip.html( y_col +": "+ d[y_col] +"<br>"+ x_col +": "+ d[x_col] )
 				.style("left", (d3.event.pageX) + "px")
 				.style("top", (d3.event.pageY - 40) + "px");
+			d3.select(this).transition().style("opacity", .9);
 		})
+		// hide tooltip
 		.on("mouseout", function(d) {
-			// hide tooltip
-			tooltip.transition()
+			tooltip.transition()		
 				.duration(500)
 				.style("opacity", 0);
-			// change circle	
-			d3.select(this).transition()
-				//.attr("r", minR);
-				.style("opacity", .7);
+			d3.select(this).transition().style("opacity", .7);
 		});
-
 
 
 
@@ -202,9 +187,6 @@ function update_graph(data,x_col,y_col,slice=10){
 		.attr("transform", "rotate (-90, -43, 0) translate(-280)");
 
 
-
-
-
 }
 
 
@@ -214,7 +196,7 @@ function update_graph(data,x_col,y_col,slice=10){
 
 
 
-/* FIRST ONE, mostly works
+/* FIRST ONE, mostly works. Here for reference for a bit
 
 function draw3(data){
 
