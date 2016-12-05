@@ -110,32 +110,21 @@ function update_data(data,xCol,yCol){
 		.append("circle");
 
 	g.selectAll("circle")
-		.transition().duration(500)
+		.transition().duration(700)
 			.attr("cx", function(d){ return xScale( parseFloat(d[xCol]) ) })
-			.attr("cy", function(d){ return yScale( parseFloat(d[yCol]) ) })	
+			.attr("cy", function(d){ return yScale( parseFloat(d[yCol]) ) })
 			.attr("r", radius)
 			.attr("class", "mark")
 			.attr("id", function(d){ return "circle_"+ d[yCol] +"_"+ d[xCol] })
-			.style("opacity", .9);	
-	
-
-	
-	/*
-	// add an entry animation
-	var enter_duration = 500; 
-	circles
-		.transition()
-		.delay(function(d, i) { return i / data.length * enter_duration; }) 
-		.style("opacity", .9);
-	*/
+			.style("opacity", .9)
+			.style("fill", function(d,i){ return colores_google(i) });	
 
 	// add circle interaction
 	g.selectAll("circle")
 		// show tooltip
 		.on("mouseover", function(d) {
 			//console.log(d3.select(this).attr("id")); // log circle id
-			tooltip.transition()		
-				.duration(200)
+			tooltip.transition().duration(200)
 				.style("opacity", .9);
 			tooltip.html( yCol +": "+ d[yCol] +"<br>"+ xCol +": "+ d[xCol] )
 				.style("left", (d3.event.pageX) + "px")
@@ -144,9 +133,7 @@ function update_data(data,xCol,yCol){
 		})
 		// hide tooltip
 		.on("mouseout", function(d) {
-			tooltip.transition()		
-				.duration(500)
-				.style("opacity", 0);
+			tooltip.transition().duration(500).style("opacity", 0);
 			d3.select(this).transition().style("opacity", .7);
 		});
 
