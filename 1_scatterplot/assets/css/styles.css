@@ -15,7 +15,19 @@ div.tooltip { position: absolute; padding: 5px; font: 12px sans-serif; backgroun
 
 
 
-#chart, #chart svg {
-  width: 900px;
-  height: 500px;
+
+
+
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 95%;
+    padding-bottom: 50%; /* aspect ratio */
+    vertical-align: top;
+    overflow: hidden;
+}
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    left: 0;
 }

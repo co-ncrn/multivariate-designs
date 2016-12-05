@@ -7,9 +7,12 @@ var limit = 20;
 
 // data sources
 var sources = [
-	{"name":"drvlone", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneCV","col2":"t_drvloneE"},
-	{"name":"transit", "data": "16740_trans_transit_sample.csv","col1":"t_transitCV","col2":"t_transitE"},
-	{"name":"vehiclpp", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppCV","col2":"t_vehiclppE"}
+	{"name":"drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneCV","col2":"t_drvloneE"},
+	{"name":"drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneCV","col2":"r_drvloneE"},
+	{"name":"transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitCV","col2":"t_transitE"},
+	{"name":"transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitCV","col2":"r_transitE"},
+	{"name":"vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppCV","col2":"t_vehiclppE"},
+	{"name":"vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppCV","col2":"r_vehiclppE"}
 ];
 
 
@@ -19,14 +22,15 @@ function load_data(source,callback){
 		data = remove_rows(data,"inf"); 	// remove rows with "inf" (infinity)
 		data = data.slice(0,limit);			// confine to limit
 		display_table(data,"table",20);		// display table
-		console.log(data);
+		//console.log(data);
 		callback(data,sources[source].col1,sources[source].col2);
 	});
 }
 
 // buttons for data sources
 for (var i in sources){
-	$(".sources").append(' <button class="btn btn-sm" id="'+ i +'">'+ sources[i].name +'</button>');
+	var html = '<p><button class="btn btn-sm" id="'+ i +'">'+ sources[i].name +'</button></p>'
+	$(".sources").append(html);
 	$("#"+ i ).on("mouseover",function(){
 		source = this.id;
 		load_data(source,update_data);
@@ -37,15 +41,27 @@ for (var i in sources){
 /* 
  *	SCATTERPLOT PROPERTIES 
  */
-var svg = d3.select("#chart").append("svg"),
-	width = svg.attr("width"),
-	height = svg.attr("height"),
-	g = svg.append("g");
+
 
 var margin = { top: 20, right: 20, bottom: 50, left: 50 },
 	width = 1000 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
     radius = 8;
+
+var svg = d3.select("#chart")
+	.append("div")
+		.classed("svg-container", true) //container class to make it responsive
+	.append("svg")
+		// responsive SVG needs these 2 attributes and no width and height attr
+		.attr("preserveAspectRatio", "xMinYMin meet")
+		.attr("viewBox", "0 0 "+ width +" "+ height)
+		.classed("svg-content-responsive", true); // class to make it responsive
+
+var g = svg.append("g");
+
+
+
+
 
 var xAxisLabelText = "(tract CV) ",
 	xAxisLabelOffset = 0;
