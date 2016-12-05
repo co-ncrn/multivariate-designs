@@ -60,7 +60,7 @@ function display_table(arr,id,limit){
 		// confine to limit
 		if (index <= limit){
 
-			console.log(row);
+			//console.log(row);
 
 			// create headers with keys on first row only
 			if (index === 0){ 
