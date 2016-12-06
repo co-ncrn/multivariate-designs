@@ -3,7 +3,7 @@
 
 
 var source = 0;	// current data source
-var limit = 20;
+var limit = 40;
 
 // data sources
 var sources = [
@@ -25,7 +25,7 @@ function load_data(source,callback){
 		//console.log(data);
 		data = remove_rows(data,"inf"); 	// remove rows with "inf" (infinity)
 		data = data.slice(0,limit);			// confine to limit
-		display_table(data,"table",20);		// display table
+		display_table(data,"table",40);		// display table
 		//console.log(data);
 		callback(data,sources[source].col1,sources[source].col2);
 	});
