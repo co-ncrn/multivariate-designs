@@ -32,4 +32,4 @@ div.tooltip { position: absolute; padding: 5px; font: 12px sans-serif; backgroun
 
 
 
-.me { fill: red; }
+.me { fill: red; stroke: #000; stroke-width: 1px; }

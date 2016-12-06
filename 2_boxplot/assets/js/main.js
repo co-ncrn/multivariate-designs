@@ -46,7 +46,7 @@ for (var i in sources){
 var margin = { top: 20, right: 20, bottom: 50, left: 50 },
 	width = 1000 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
-    boxW = boxH = 8;
+    boxW = 10, boxH = 2;
 
 var svg = d3.select("#chart")
 	.append("div")
@@ -95,7 +95,7 @@ function update_data(data,xCol,yCol){
 		data[i].max = parseFloat(row[yCol]) + parseFloat(row[xCol]);
 
 	});
-	console.log(data)
+	//console.log(data)
 
 
 
@@ -116,7 +116,7 @@ function update_data(data,xCol,yCol){
 	var max = d3.max(data, function(d) { return parseFloat(d["max"]); });
 	//console.log( min, max);
 
-	var yExtent = [max,min]; // note: these are flipped because 0,0 is top,left
+	var yExtent = [min,max]; // note: these are flipped because 0,0 is top,left
 	//console.log(yExtent);
 
 	// function to map Y data (input) onto Y range (output)
@@ -124,6 +124,49 @@ function update_data(data,xCol,yCol){
 		.domain(yExtent)
 		.range([height-margin.bottom, margin.top]); // reverse so 0,0 is bottom,left
 
+/*
+	var line = g.selectAll("lines").data(data).enter().append("line")
+		.attr("x1", 100) 
+		.attr("y1", 0) 
+		.attr("x2", 100) 
+		.attr("y2", 200)
+		.attr("stroke-width", boxW)
+		.attr("stroke", "red");	
+*/
+
+
+
+
+
+	var lines = g.selectAll("line")
+		.data(data).enter()
+		.append("line");
+
+	// margin of error lines
+	g.selectAll("line").transition().duration(700)
+		.attr("x1", function(d,i){ return xScale( i )+boxW*1.5 }) 
+		.attr("y1", function(d,i){ return yScale( d["min"] )+boxH*1.5 }) 
+		.attr("x2", function(d,i){ return xScale( i )+boxW*1.5 }) 
+		.attr("y2", function(d,i){ return yScale( d["max"] )+boxH/1.5 }) 
+		.attr("stroke-width", boxW)
+		.attr("stroke", "red");	
+
+	// add interaction: show/hide tooltip
+	g.selectAll("line")
+		.on("mouseover", function(d) {
+			console.log(d3.select(this)); // log id
+			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
+			var text = "TID: "+ d["TID"] +"<br>RID: "+ d["RID"] +"<br>"+
+						yCol +" "+ d[yCol] +
+					   "<br>Margin of Error: "+ d[xCol] +
+					   "<br>Range: "+ d["min"] +" --> "+ d["max"];
+			tooltip.html(text)
+				.style("left", (d3.event.pageX) + "px")
+				.style("top", (d3.event.pageY - 40) + "px");
+		})
+		.on("mouseout", function(d) {
+			tooltip.transition().duration(500).style("opacity", 0); 
+		});
 
 	// select points
 	var box = g.selectAll("rect.box")
@@ -133,48 +176,29 @@ function update_data(data,xCol,yCol){
 	g.selectAll("rect")
 			.attr("class", "box")
 		.transition().duration(700)
-			.attr("x", function(d,i){ return xScale( i )+10 })
+			.attr("x", function(d,i){ return xScale( i )+boxW })
 			.attr("y", function(d){ return yScale( parseFloat(d[yCol]) ) })
 			.attr("width", boxW)
 			.attr("height", boxH)
 			.attr("id", function(d){ return "box_"+ d[yCol] +"_"+ d[xCol] })
 			.style("opacity", .9)
-			.style("fill", function(d,i){ return colores_google(i) });	
+			.style("fill", "black");	
 
-	// add interaction
-	g.selectAll("rect")
-		// show tooltip
+	// add interaction: show/hide tooltip
+	g.selectAll("rect.box")
 		.on("mouseover", function(d) {
 			//console.log(d3.select(this).attr("id")); // log id
-			tooltip.transition().duration(200)
-				.style("opacity", .9);
-			tooltip.html( yCol +": "+ d[yCol] +"<br>"+ xCol +": "+ d[xCol] )
+			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
+			var text = yCol +": "+ d[yCol] +"<br>"+ xCol +": "+ d[xCol];
+			tooltip.html(text)
 				.style("left", (d3.event.pageX) + "px")
 				.style("top", (d3.event.pageY - 40) + "px");
-			d3.select(this).transition().style("opacity", .9);
 		})
-		// hide tooltip
 		.on("mouseout", function(d) {
-			tooltip.transition().duration(500).style("opacity", 0);
-			d3.select(this).transition().style("opacity", .7);
+			tooltip.transition().duration(500).style("opacity", 0); 
 		});
 
 
-	// select margin of error boxes
-	var me = g.selectAll("rect.me")
-		.data(data).enter()
-		.append("rect");
-
-	g.selectAll("rect.me")
-			.attr("class", "me")
-		.transition().duration(700)
-			.attr("x", function(d,i){ return xScale( i )+10 })
-			.attr("y", function(d){ console.log(d["min"]); return yScale( parseFloat(d["min"]) ) })
-			.attr("width", boxW)
-			.attr("height", function(d){ return yScale( parseFloat(d["max"]) ) })
-			//.attr("id", function(d){ return "box_"+ d[yCol] +"_"+ d[xCol] })
-			.style("opacity", .9)
-			//.style("fill", function(d,i){ return colores_google(i) });	
 
 
 	create_scatterplot_axes(xScale,yScale,xCol,yCol);
