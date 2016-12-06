@@ -3,16 +3,20 @@
 
 
 var source = 0;	// current data source
-var limit = 20;
+var limit = 40;
 
 // data sources
 var sources = [
-	{"name":"drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneM","col2":"t_drvloneE"},
-	{"name":"drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneM","col2":"r_drvloneE"},
-	{"name":"transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitM","col2":"t_transitE"},
-	{"name":"transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitM","col2":"r_transitE"},
-	{"name":"vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppM","col2":"t_vehiclppE"},
-	{"name":"vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppM","col2":"r_vehiclppE"}
+	{"name":"trans: drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneM","col2":"t_drvloneE"},
+	{"name":"trans: drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneM","col2":"r_drvloneE"},
+	{"name":"trans: transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitM","col2":"t_transitE"},
+	{"name":"trans: transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitM","col2":"r_transitE"},
+	{"name":"trans: vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppM","col2":"t_vehiclppE"},
+	{"name":"trans: vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppM","col2":"r_vehiclppE"},
+	{"name":"hous: avgrooms (tracts)", "data": "16740_hous_avgrooms_sample.csv","col1":"t_avgroomsM","col2":"t_avgroomsE"},
+	{"name":"hous: avgrooms (regions)", "data": "16740_hous_avgrooms_sample.csv","col1":"r_avgroomsM","col2":"r_avgroomsE"},
+	{"name":"hous: occupied (tracts)", "data": "16740_hous_occupied_sample.csv","col1":"t_occupiedM","col2":"t_occupiedE"},
+	{"name":"hous: occupied (regions)", "data": "16740_hous_occupied_sample.csv","col1":"r_occupiedM","col2":"r_occupiedE"}
 ];
 
 
