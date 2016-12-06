@@ -7,12 +7,12 @@ var limit = 20;
 
 // data sources
 var sources = [
-	{"name":"drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneCV","col2":"t_drvloneE"},
-	{"name":"drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneCV","col2":"r_drvloneE"},
-	{"name":"transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitCV","col2":"t_transitE"},
-	{"name":"transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitCV","col2":"r_transitE"},
-	{"name":"vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppCV","col2":"t_vehiclppE"},
-	{"name":"vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppCV","col2":"r_vehiclppE"}
+	{"name":"drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneM","col2":"t_drvloneE"},
+	{"name":"drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneM","col2":"r_drvloneE"},
+	{"name":"transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitM","col2":"t_transitE"},
+	{"name":"transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitM","col2":"r_transitE"},
+	{"name":"vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppM","col2":"t_vehiclppE"},
+	{"name":"vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppM","col2":"r_vehiclppE"}
 ];
 
 
@@ -26,6 +26,7 @@ function load_data(source,callback){
 		callback(data,sources[source].col1,sources[source].col2);
 	});
 }
+
 
 // buttons for data sources
 for (var i in sources){
@@ -45,7 +46,7 @@ for (var i in sources){
 var margin = { top: 20, right: 20, bottom: 50, left: 50 },
 	width = 1000 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
-    radius = 8;
+    boxW = boxH = 8;
 
 var svg = d3.select("#chart")
 	.append("div")
@@ -84,17 +85,39 @@ var tooltip = d3.select("body").append("div")
 function update_data(data,xCol,yCol){
 	//console.log(JSON.stringify(data));
 
+	// data fixing
+	data.forEach(function(row,i) {
+		//console.log(row);
+
+		// the x column is the margin of error
+		// so we create a high / low
+		data[i].min = parseFloat(row[yCol]) - parseFloat(row[xCol]);
+		data[i].max = parseFloat(row[yCol]) + parseFloat(row[xCol]);
+
+	});
+	console.log(data)
+
+
+
 	// set X min, max
-	var xExtent = d3.extent(data, function(d){ return parseFloat(d[xCol]) });
-	xExtent[0] = -.001; // tweak X axis to allow -0
+	//var xExtent = d3.extent(data, function(d){ return parseFloat(d[xCol]) });
+	//xExtent[0] = -.001; // tweak X axis to allow -0
 
 	// scale xAxis data (domain/input) onto x range (output)
 	var xScale = d3.scaleLinear()
-		.domain(xExtent)
+		.domain([0,limit])
 		.range([margin.left,width-margin.right]);
 
 	// set Y min, max
-	var yExtent = d3.extent(data, function(d){ return d[yCol] });
+	//var yExtent = d3.extent(data, function(d){ return d[yCol] });
+
+	// set min/max above w/ data.forEach
+	var min = d3.min(data, function(d) { return parseFloat(d["min"]); });
+	var max = d3.max(data, function(d) { return parseFloat(d["max"]); });
+	//console.log( min, max);
+
+	var yExtent = [max,min]; // note: these are flipped because 0,0 is top,left
+	//console.log(yExtent);
 
 	// function to map Y data (input) onto Y range (output)
 	var yScale = d3.scaleLinear()
@@ -102,26 +125,27 @@ function update_data(data,xCol,yCol){
 		.range([height-margin.bottom, margin.top]); // reverse so 0,0 is bottom,left
 
 
-	// select circles
-	g.selectAll("circle")
+	// select points
+	var box = g.selectAll("rect.box")
 		.data(data).enter()
-		.append("circle");
+		.append("rect");
 
-	g.selectAll("circle")
+	g.selectAll("rect")
+			.attr("class", "box")
 		.transition().duration(700)
-			.attr("cx", function(d){ return xScale( parseFloat(d[xCol]) ) })
-			.attr("cy", function(d){ return yScale( parseFloat(d[yCol]) ) })
-			.attr("r", radius)
-			.attr("class", "mark")
-			.attr("id", function(d){ return "circle_"+ d[yCol] +"_"+ d[xCol] })
+			.attr("x", function(d,i){ return xScale( i )+10 })
+			.attr("y", function(d){ return yScale( parseFloat(d[yCol]) ) })
+			.attr("width", boxW)
+			.attr("height", boxH)
+			.attr("id", function(d){ return "box_"+ d[yCol] +"_"+ d[xCol] })
 			.style("opacity", .9)
 			.style("fill", function(d,i){ return colores_google(i) });	
 
-	// add circle interaction
-	g.selectAll("circle")
+	// add interaction
+	g.selectAll("rect")
 		// show tooltip
 		.on("mouseover", function(d) {
-			//console.log(d3.select(this).attr("id")); // log circle id
+			//console.log(d3.select(this).attr("id")); // log id
 			tooltip.transition().duration(200)
 				.style("opacity", .9);
 			tooltip.html( yCol +": "+ d[yCol] +"<br>"+ xCol +": "+ d[xCol] )
@@ -134,6 +158,23 @@ function update_data(data,xCol,yCol){
 			tooltip.transition().duration(500).style("opacity", 0);
 			d3.select(this).transition().style("opacity", .7);
 		});
+
+
+	// select margin of error boxes
+	var me = g.selectAll("rect.me")
+		.data(data).enter()
+		.append("rect");
+
+	g.selectAll("rect.me")
+			.attr("class", "me")
+		.transition().duration(700)
+			.attr("x", function(d,i){ return xScale( i )+10 })
+			.attr("y", function(d){ console.log(d["min"]); return yScale( parseFloat(d["min"]) ) })
+			.attr("width", boxW)
+			.attr("height", function(d){ return yScale( parseFloat(d["max"]) ) })
+			//.attr("id", function(d){ return "box_"+ d[yCol] +"_"+ d[xCol] })
+			.style("opacity", .9)
+			//.style("fill", function(d,i){ return colores_google(i) });	
 
 
 	create_scatterplot_axes(xScale,yScale,xCol,yCol);
@@ -152,21 +193,21 @@ function create_scatterplot_axes(xScale,yScale,xCol,yCol){
 	// set X/Y axes functions
 	var xAxis = d3.axisBottom().scale(xScale);
 	var yAxis = d3.axisLeft().scale(yScale);
-
+/*
 	// add X axis properties and call above function
 	d3.select("svg").append("g")
 		.attr("class", "x axis")
 		.attr("transform", "translate(0," + (height-margin.bottom) + ")");
-
+*/
 	// add Y axis properties and call above function
 	d3.select("svg").append("g")	
 		.attr("class", "y axis")
 		.attr("transform", "translate(" + (margin.left) + ",0)");
 
 	// update X/Y axes
-	d3.select(".x.axis").transition().duration(500).call(xAxis); 
+//	d3.select(".x.axis").transition().duration(500).call(xAxis); 
 	d3.select(".y.axis").transition().duration(500).call(yAxis); 
-
+/*
 	// add X axis label
 	svg.selectAll(".x.axis .label").remove();
 	d3.select(".x.axis").append("text")
@@ -175,7 +216,7 @@ function create_scatterplot_axes(xScale,yScale,xCol,yCol){
 			.attr("x", (width / 2))
 			.attr("y", margin.bottom / 1.1)
 			.attr("class", "label");
-
+*/
 	// add Y axis label
 	svg.selectAll(".y.axis .label").remove();
 	d3.select(".y.axis").append("text")
