@@ -75,6 +75,7 @@ function display_table(arr,id,limit){
 			// all other rows
 			str += "<tr><td>"+ index +"</td>";
 			$.each(row, function( key, val ) {
+				if(!isNaN(parseFloat(val))) val = Math.round(val * 1000) / 1000;
 				str += "<td>"+ val +"</td>"
 			});
 			str += "</tr>"

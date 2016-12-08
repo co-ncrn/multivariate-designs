@@ -98,6 +98,10 @@ function update_data(data,xCol,yCol){
 		data[i].min = parseFloat(row[yCol]) - parseFloat(row[xCol]);
 		data[i].max = parseFloat(row[yCol]) + parseFloat(row[xCol]);
 
+
+		// clean numbers
+		data[i][xCol] = Math.round(data[i][xCol] * 1000) / 1000;
+		data[i][yCol] = Math.round(data[i][yCol] * 1000) / 1000;
 	});
 	//console.log(data)
 
@@ -161,9 +165,9 @@ function update_data(data,xCol,yCol){
 			console.log(d3.select(this)); // log id
 			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
 			var text = "TID: "+ d["TID"] +"<br>RID: "+ d["RID"] +"<br>"+
-						yCol +" "+ d[yCol] +
+						yCol +": "+ d[yCol] +
 					   "<br>Margin of Error: "+ d[xCol] +
-					   "<br>Range: "+ d["min"] +" --> "+ d["max"];
+					   "<br>Range: "+ Math.round(d["min"] * 1000) / 1000 +" --> "+ Math.round(d["max"] * 1000) / 1000;
 			tooltip.html(text)
 				.style("left", (d3.event.pageX) + "px")
 				.style("top", (d3.event.pageY - 40) + "px");

@@ -114,6 +114,9 @@ function update_data(data,xCol,yCol){
 		data[i].min = parseFloat(row[yCol]) - parseFloat(row[xCol]);
 		data[i].max = parseFloat(row[yCol]) + parseFloat(row[xCol]);
 
+		// clean numbers
+		data[i][xCol] = Math.round(data[i][xCol] * 1000) / 1000;
+		data[i][yCol] = Math.round(data[i][yCol] * 1000) / 1000;
 	});
 	//console.log(data)
 
@@ -122,7 +125,7 @@ function update_data(data,xCol,yCol){
 	// set X min, max
 	var xExtent = d3.extent(data, function(d){ return parseFloat(d[xCol]) });
 	xExtent[0] = -.001; // tweak X axis to allow -0
-
+console.log(xExtent)
 	// scale xAxis data (domain/input) onto x range (output)
 	var xScale = d3.scaleLinear()
 		.domain([0,width])
@@ -131,14 +134,12 @@ function update_data(data,xCol,yCol){
 	// set Y min, max
 	var yExtent = d3.extent(data, function(d){ return d[yCol] });
 
-	console.log(yExtent);
-
 	// function to map Y data (input) onto Y range (output)
 	var yScale = d3.scaleLinear()
 		.domain(yExtent)
-		.range([height-margin.bottom, margin.top]); // reverse so 0,0 is bottom,left
-
-
+		.range([0,1]); // reverse so 0,0 is bottom,left
+console.log("yExtent: "+yExtent);
+console.log(yScale(0),yScale(1));
 
 var col = row = 0;
 
@@ -164,7 +165,7 @@ var col = row = 0;
 			.attr("width", boxW)
 			.attr("height", boxH)
 			.attr("id", function(d,i){ return d[xCol]*4; })
-			.style("opacity", function(d,i){ return d[yCol]; })
+			.style("opacity", function(d,i){ return yScale(d[yCol]); }) // change color w/opacity
 			.style("fill", "black");	
 
 	// add interaction: show/hide tooltip
@@ -176,11 +177,9 @@ var col = row = 0;
 			tooltip.html(text)
 				.style("left", (d3.event.pageX) + "px")
 				.style("top", (d3.event.pageY - 40) + "px");
-			d3.select(this).transition().style("opacity", .2);	
 		})
 		.on("mouseout", function(d) {
 			tooltip.transition().duration(500).style("opacity", 0); 
-			d3.select(this).transition().style("opacity", function(d){ console.log(d); return d[yCol]; });
 		});
 
 

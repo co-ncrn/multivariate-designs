@@ -88,6 +88,14 @@ var tooltip = d3.select("body").append("div")
 function update_data(data,xCol,yCol){
 	//console.log(JSON.stringify(data));
 
+
+	// data fixing
+	data.forEach(function(row,i) {
+		// clean numbers
+		data[i][xCol] = Math.round(data[i][xCol] * 1000) / 1000;
+		data[i][yCol] = Math.round(data[i][yCol] * 1000) / 1000;
+	});
+
 	// set X min, max
 	var xExtent = d3.extent(data, function(d){ return parseFloat(d[xCol]) });
 	xExtent[0] = -.001; // tweak X axis to allow -0
