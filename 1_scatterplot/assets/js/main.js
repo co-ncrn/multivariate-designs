@@ -7,16 +7,16 @@ var limit = 40;
 
 // data sources
 var sources = [
-	{"name":"trans: drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneCV","col2":"t_drvloneE"},
-	{"name":"trans: drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneCV","col2":"r_drvloneE"},
-	{"name":"trans: transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitCV","col2":"t_transitE"},
-	{"name":"trans: transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitCV","col2":"r_transitE"},
-	{"name":"trans: vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppCV","col2":"t_vehiclppE"},
-	{"name":"trans: vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppCV","col2":"r_vehiclppE"},
-	{"name":"hous: avgrooms (tracts)", "data": "16740_hous_avgrooms_sample.csv","col1":"t_avgroomsCV","col2":"t_avgroomsE"},
-	{"name":"hous: avgrooms (regions)", "data": "16740_hous_avgrooms_sample.csv","col1":"r_avgroomsCV","col2":"r_avgroomsE"},
-	{"name":"hous: occupied (tracts)", "data": "16740_hous_occupied_sample.csv","col1":"t_occupiedCV","col2":"t_occupiedE"},
-	{"name":"hous: occupied (regions)", "data": "16740_hous_occupied_sample.csv","col1":"r_occupiedCV","col2":"r_occupiedE"}
+	{"name":"drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneCV","col2":"t_drvloneE"},
+	{"name":"drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneCV","col2":"r_drvloneE"},
+	{"name":"transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitCV","col2":"t_transitE"},
+	{"name":"transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitCV","col2":"r_transitE"},
+	{"name":"vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppCV","col2":"t_vehiclppE"},
+	{"name":"vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppCV","col2":"r_vehiclppE"},
+	{"name":"avgrooms (tracts)", "data": "16740_hous_avgrooms_sample.csv","col1":"t_avgroomsCV","col2":"t_avgroomsE"},
+	{"name":"avgrooms (regions)", "data": "16740_hous_avgrooms_sample.csv","col1":"r_avgroomsCV","col2":"r_avgroomsE"},
+	{"name":"occupied (tracts)", "data": "16740_hous_occupied_sample.csv","col1":"t_occupiedCV","col2":"t_occupiedE"},
+	{"name":"occupied (regions)", "data": "16740_hous_occupied_sample.csv","col1":"r_occupiedCV","col2":"r_occupiedE"}
 ];
 
 
@@ -33,11 +33,11 @@ function load_data(source,callback){
 
 // buttons for data sources
 for (var i in sources){
-	var html = '<p><button class="btn btn-sm" id="'+ i +'">'+ sources[i].name +'</button></p>'
+	var html = '<p><button class="btn btn-sm data-btn" id="'+ i +'">'+ sources[i].name +'</button></p>'
 	$(".sources").append(html);
+	// add listener
 	$("#"+ i ).on("mouseover",function(){
-		source = this.id;
-		load_data(source,update_data);
+		load_data(this.id,update_data);
 	})
 }
 

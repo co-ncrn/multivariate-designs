@@ -3,6 +3,9 @@
 h1 a { padding: 0 5px; }
 
 
+.data-btn { display: inline-block; }
+
+
 /* make viz responsive */
 
 .svg-container {

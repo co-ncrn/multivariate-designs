@@ -7,16 +7,16 @@ var limit = 108;
 
 // data sources
 var sources = [
-	{"name":"trans: drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneCV","col2":"t_drvloneE"},
-	{"name":"trans: drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneCV","col2":"r_drvloneE"},
-	{"name":"trans: transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitCV","col2":"t_transitE"},
-	{"name":"trans: transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitCV","col2":"r_transitE"},
-	{"name":"trans: vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppCV","col2":"t_vehiclppE"},
-	{"name":"trans: vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppCV","col2":"r_vehiclppE"},
-	{"name":"hous: avgrooms (tracts)", "data": "16740_hous_avgrooms_sample.csv","col1":"t_avgroomsCV","col2":"t_avgroomsE"},
-	{"name":"hous: avgrooms (regions)", "data": "16740_hous_avgrooms_sample.csv","col1":"r_avgroomsCV","col2":"r_avgroomsE"},
-	{"name":"hous: occupied (tracts)", "data": "16740_hous_occupied_sample.csv","col1":"t_occupiedCV","col2":"t_occupiedE"},
-	{"name":"hous: occupied (regions)", "data": "16740_hous_occupied_sample.csv","col1":"r_occupiedCV","col2":"r_occupiedE"}
+	{"name":"drvlone (tracts)", "data": "16740_trans_drvlone_sample.csv","col1":"t_drvloneCV","col2":"t_drvloneE"},
+	{"name":"drvlone (regions)", "data": "16740_trans_drvlone_sample.csv","col1":"r_drvloneCV","col2":"r_drvloneE"},
+	{"name":"transit (tracts)", "data": "16740_trans_transit_sample.csv","col1":"t_transitCV","col2":"t_transitE"},
+	{"name":"transit (regions)", "data": "16740_trans_transit_sample.csv","col1":"r_transitCV","col2":"r_transitE"},
+	{"name":"vehiclpp (tracts)", "data": "16740_trans_vehiclpp_sample.csv","col1":"t_vehiclppCV","col2":"t_vehiclppE"},
+	{"name":"vehiclpp (regions)", "data": "16740_trans_vehiclpp_sample.csv","col1":"r_vehiclppCV","col2":"r_vehiclppE"},
+	{"name":"avgrooms (tracts)", "data": "16740_hous_avgrooms_sample.csv","col1":"t_avgroomsCV","col2":"t_avgroomsE"},
+	{"name":"avgrooms (regions)", "data": "16740_hous_avgrooms_sample.csv","col1":"r_avgroomsCV","col2":"r_avgroomsE"},
+	{"name":"occupied (tracts)", "data": "16740_hous_occupied_sample.csv","col1":"t_occupiedCV","col2":"t_occupiedE"},
+	{"name":"occupied (regions)", "data": "16740_hous_occupied_sample.csv","col1":"r_occupiedCV","col2":"r_occupiedE"}
 ];
 
 
@@ -34,11 +34,11 @@ function load_data(source,callback){
 
 // buttons for data sources
 for (var i in sources){
-	var html = '<p><button class="btn btn-sm" id="'+ i +'">'+ sources[i].name +'</button></p>'
+	var html = '<p><button class="btn btn-sm data-btn" id="'+ i +'">'+ sources[i].name +'</button></p>'
 	$(".sources").append(html);
+	// add listener
 	$("#"+ i ).on("mouseover",function(){
-		source = this.id;
-		load_data(source,update_data);
+		load_data(this.id,update_data);
 	})
 }
 
@@ -111,8 +111,8 @@ function update_data(data,xCol,yCol){
 
 		// the x column is the margin of error
 		// so we create a high / low
-		data[i].min = parseFloat(row[yCol]) - parseFloat(row[xCol]);
-		data[i].max = parseFloat(row[yCol]) + parseFloat(row[xCol]);
+		//data[i].min = parseFloat(row[yCol]) - parseFloat(row[xCol]);
+		//data[i].max = parseFloat(row[yCol]) + parseFloat(row[xCol]);
 
 		// clean numbers
 		data[i][xCol] = Math.round(data[i][xCol] * 1000) / 1000;
@@ -125,7 +125,7 @@ function update_data(data,xCol,yCol){
 	// set X min, max
 	var xExtent = d3.extent(data, function(d){ return parseFloat(d[xCol]) });
 	xExtent[0] = -.001; // tweak X axis to allow -0
-console.log(xExtent)
+
 	// scale xAxis data (domain/input) onto x range (output)
 	var xScale = d3.scaleLinear()
 		.domain([0,width])
@@ -139,7 +139,10 @@ console.log(xExtent)
 		.domain(yExtent)
 		.range([0,1]); // reverse so 0,0 is bottom,left
 console.log("yExtent: "+yExtent);
-console.log(yScale(0),yScale(1));
+console.log(yScale(yExtent[0]),yScale(yExtent[1]));
+
+var oScale = d3.scaleOrdinal().domain(yExtent).range([0,.1,.2,.3,.4,.5,.6,.7,.8,.9]);
+//console.log ( oScale(0.5),oScale(1) )
 
 var col = row = 0;
 
@@ -158,22 +161,23 @@ var col = row = 0;
 				return col*boxW;
 			})
 			.attr("y", function(d,i){ 
-
 				if (i % sq[0] === 0 ) row++;
 				return row*boxH;
 			})
 			.attr("width", boxW)
 			.attr("height", boxH)
 			.attr("id", function(d,i){ return d[xCol]*4; })
-			.style("opacity", function(d,i){ return yScale(d[yCol]); }) // change color w/opacity
-			.style("fill", "black");	
+			.style("fill", "black")
+			.style("opacity", function(d,i){ return yScale(d[yCol]); }) // change color w/opacity;	
 
 	// add interaction: show/hide tooltip
 	g.selectAll("rect.box")
 		.on("mouseover", function(d) {
 			//console.log(d3.select(this).attr("id")); // log id
-			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
-			var text = yCol +": "+ d[yCol] +"<br>"+ xCol +": "+ d[xCol];
+			tooltip.transition().duration(200).style("opacity", 1); // show tooltip
+			var text = xCol +": "+ d[xCol] +
+					   "<br>"+ yCol +": "+ d[yCol] +
+					   " ("+ (Math.round( yScale(d[yCol]) * 100) / 100) +" opacity)";
 			tooltip.html(text)
 				.style("left", (d3.event.pageX) + "px")
 				.style("top", (d3.event.pageY - 40) + "px");
@@ -181,9 +185,6 @@ var col = row = 0;
 		.on("mouseout", function(d) {
 			tooltip.transition().duration(500).style("opacity", 0); 
 		});
-
-
-
 
 	
 }
