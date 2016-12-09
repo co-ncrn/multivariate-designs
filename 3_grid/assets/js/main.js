@@ -61,7 +61,8 @@ var svg = d3.select("#chart")
 		.attr("viewBox", "0 0 "+ width +" "+ height)
 		.classed("svg-content-responsive", true); // class to make it responsive
 
-var g = svg.append("g");
+var estimateGroup = svg.append("g");
+var cvGroup = svg.append("g");
 
 // create div for the tooltip
 var tooltip = d3.select("body").append("div")	
@@ -124,12 +125,14 @@ function update_data(data,xCol,yCol){
 
 	// set X min, max
 	var xExtent = d3.extent(data, function(d){ return parseFloat(d[xCol]) });
-	xExtent[0] = -.001; // tweak X axis to allow -0
 
 	// scale xAxis data (domain/input) onto x range (output)
 	var xScale = d3.scaleLinear()
-		.domain([0,width])
-		.range([margin.left,width-margin.right]);
+		.domain(xExtent)
+		.range([0,1]);
+
+	console.log("xExtent: "+xExtent);
+	console.log(xScale(xExtent[0]),xScale(xExtent[1]));
 
 	// set Y min, max
 	var yExtent = d3.extent(data, function(d){ return d[yCol] });
@@ -138,21 +141,21 @@ function update_data(data,xCol,yCol){
 	var yScale = d3.scaleLinear()
 		.domain(yExtent)
 		.range([0,1]); // reverse so 0,0 is bottom,left
-console.log("yExtent: "+yExtent);
-console.log(yScale(yExtent[0]),yScale(yExtent[1]));
+	
+	//console.log("yExtent: "+yExtent);
+	//console.log(yScale(yExtent[0]),yScale(yExtent[1]));
 
-var oScale = d3.scaleOrdinal().domain(yExtent).range([0,.1,.2,.3,.4,.5,.6,.7,.8,.9]);
-//console.log ( oScale(0.5),oScale(1) )
 
-var col = row = 0;
 
+
+	var col = row = 0;
 
 	// select points
-	var box = g.selectAll("rect.box")
+	estimateGroup.selectAll("rect.box")
 		.data(data).enter()
 		.append("rect");
 
-	g.selectAll("rect")
+	estimateGroup.selectAll("rect")
 			.attr("class", "box")
 		.transition().duration(600)
 			.attr("x", function(d,i){ 
@@ -171,7 +174,7 @@ var col = row = 0;
 			.style("opacity", function(d,i){ return yScale(d[yCol]); }) // change color w/opacity;	
 
 	// add interaction: show/hide tooltip
-	g.selectAll("rect.box")
+	estimateGroup.selectAll("rect.box")
 		.on("mouseover", function(d) {
 			//console.log(d3.select(this).attr("id")); // log id
 			tooltip.transition().duration(200).style("opacity", 1); // show tooltip
@@ -185,6 +188,32 @@ var col = row = 0;
 		.on("mouseout", function(d) {
 			tooltip.transition().duration(500).style("opacity", 0); 
 		});
+
+	// reset col/row
+	var col = row = 0;
+
+	cvGroup.selectAll("rect.redbox")
+		.data(data).enter()
+		.append("rect");
+
+	cvGroup.selectAll("rect")
+			.attr("class", "redbox")
+		.transition().duration(600)
+			.attr("x", function(d,i){ 
+				if (i % sq[0] ===0 ) col = 0;
+				else col++;
+				return col*boxW;
+			})
+			.attr("y", function(d,i){ 
+				if (i % sq[0] === 0 ) row++;
+				return row*boxH;
+			})
+			.attr("width", boxW)
+			.attr("height", boxH)
+			.attr("id", function(d,i){ return d[xCol]*4; })
+			.style("fill", "rgba(255,0,0,1)")
+			.style("opacity", function(d,i){ return xScale(d[xCol]); }) // change color w/opacity;	
+
 
 	
 }
