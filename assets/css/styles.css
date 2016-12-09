@@ -1,6 +1,20 @@
 
-
+h1 { font-size: 90%; }
 h1 a { padding: 0 3px; }
+div.tooltip { position: absolute; padding: 5px 7px; font: 12px sans-serif; background: lightgrey; border: 0px; border-radius: 3px; pointer-events: none; }
+.data-table { margin-top: 10px; }
+
+
+
+
+.axis path, .axis line { fill:none; stroke: black; shape-rendering: crispEdges; }
+.axis text { fill: black; font-family: sans-serif; font-size: 11px; }
+.axis .label { font-size: 11px; }
+.tick { fill:none; stroke: none; }
+
+
+/*circle { stroke:black; opacity:0.7; }*/
+.mark { fill: currentColor; stroke: currentColor; fill-opacity: 0.5; }
 
 
 

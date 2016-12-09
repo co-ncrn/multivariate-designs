@@ -3,7 +3,7 @@
 
 
 var source = 0;	// current data source
-var limit = 108;
+var limit = 126;
 
 // data sources
 var sources = [
@@ -148,7 +148,15 @@ function update_data(data,xCol,yCol){
 
 
 
-	var col = row = 0;
+// print out xExtent/yExtent
+
+var html_out = "#value ranges = ";
+html_out += xCol +" = "+ xExtent[0] +" -> "+ xExtent[1];
+html_out += " | "+ yCol +" = "+ yExtent[0] +" -> "+ yExtent[1];
+$("#report").html(html_out);
+
+
+	var col = row = -1; // reset position
 
 	// select points
 	estimateGroup.selectAll("rect.box")
@@ -173,6 +181,34 @@ function update_data(data,xCol,yCol){
 			.style("fill", "black")
 			.style("opacity", function(d,i){ return yScale(d[yCol]); }) // change color w/opacity;	
 
+	var col = row = -1; // reset position	
+
+	estimateGroup.selectAll("text")
+		.data(data).enter()
+		.append("text");	
+
+	estimateGroup.selectAll("text")
+		.transition().duration(600)
+			.attr("x", function(d,i){ 
+				if (i % sq[0] ===0 ) col = 0;
+				else col++;
+				return (col*boxW)+(boxW/2) ;
+			})
+			.attr("y", function(d,i){ 
+				if (i % sq[0] === 0 ) row++;
+				return (row*boxH)+(boxH/2);
+			})
+			.text(function(d){
+				return d[xCol];
+			})
+				.attr("text-anchor", "middle")
+		       .attr("font-family", "sans-serif")
+		       .attr("font-size", "9px")
+		       .attr("fill", "white")
+			;
+
+
+
 	// add interaction: show/hide tooltip
 	estimateGroup.selectAll("rect.box")
 		.on("mouseover", function(d) {
@@ -189,33 +225,50 @@ function update_data(data,xCol,yCol){
 			tooltip.transition().duration(500).style("opacity", 0); 
 		});
 
-	// reset col/row
-	var col = row = 0;
+var showCV = 1;
 
-	cvGroup.selectAll("rect.redbox")
-		.data(data).enter()
-		.append("rect");
+	if (showCV){
 
-	cvGroup.selectAll("rect")
-			.attr("class", "redbox")
-		.transition().duration(600)
-			.attr("x", function(d,i){ 
-				if (i % sq[0] ===0 ) col = 0;
-				else col++;
-				return col*boxW;
+		var col = row = -1; // reset position
+
+		cvGroup.selectAll("rect.redbox")
+			.data(data).enter()
+			.append("rect");
+
+		cvGroup.selectAll("rect")
+				.attr("class", "redbox")
+			.transition().duration(600)
+				.attr("x", function(d,i){ 
+					if (i % sq[0] ===0 ) col = 0;
+					else col++;
+					return col*boxW;
+				})
+				.attr("y", function(d,i){ 
+					if (i % sq[0] === 0 ) row++;
+					return row*boxH;
+				})
+				.attr("width", boxW)
+				.attr("height", boxH)
+				.attr("id", function(d,i){ return d[xCol]*4; })
+				.style("fill", "rgba(255,0,0,1)")
+				.style("opacity", function(d,i){ return xScale(d[xCol]); }) // change color w/opacity;	
+
+		// add interaction: show/hide tooltip
+		cvGroup.selectAll("rect.redbox")
+			.on("mouseover", function(d) {
+				//console.log(d3.select(this).attr("id")); // log id
+				tooltip.transition().duration(200).style("opacity", 1); // show tooltip
+				var text = xCol +": "+ d[xCol] +
+						   "<br>"+ yCol +": "+ d[yCol] +
+						   " ("+ (Math.round( yScale(d[yCol]) * 100) / 100) +" opacity)";
+				tooltip.html(text)
+					.style("left", (d3.event.pageX) + "px")
+					.style("top", (d3.event.pageY - 40) + "px");
 			})
-			.attr("y", function(d,i){ 
-				if (i % sq[0] === 0 ) row++;
-				return row*boxH;
-			})
-			.attr("width", boxW)
-			.attr("height", boxH)
-			.attr("id", function(d,i){ return d[xCol]*4; })
-			.style("fill", "rgba(255,0,0,1)")
-			.style("opacity", function(d,i){ return xScale(d[xCol]); }) // change color w/opacity;	
-
-
-	
+			.on("mouseout", function(d) {
+				tooltip.transition().duration(500).style("opacity", 0); 
+			});
+	}
 }
 load_data(0,update_data);
 

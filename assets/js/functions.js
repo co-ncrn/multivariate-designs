@@ -2,6 +2,31 @@
 
 
 
+/**
+ *
+ */
+
+
+var info = [
+	'<a href="https://beckymasond.github.io/" target="_blank">data</a>',
+	'<a href="https://github.com/co-ncrn/multivariate-testing" target="_blank">code</a>'
+];
+var header_links = [
+	'<a href="../1_scatterplot/">1_scatterplot</a>',
+	'<a href="../2_boxplot/">2_boxplot</a>',
+	'<a href="../3_grid/">3_grid</a>' 
+];
+function display_info(node,data){
+	
+	var str = "";
+	data.forEach(function(row,i) {
+		str += "<span>"+ row +"</span>";
+	})
+	$(node).html(str)
+}
+display_info(".info",info);
+display_info(".header_links",header_links);
+
 
 
 

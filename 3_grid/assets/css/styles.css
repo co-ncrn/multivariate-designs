@@ -1,17 +1,6 @@
-h1 { font-size: 90%; }
-.data-table { margin-top: 10px; }
-div.tooltip { position: absolute; padding: 5px; font: 12px sans-serif; background: lightgrey; border: 0px; border-radius: 8px; pointer-events: none; }
 
 
 
-.axis path, .axis line { fill:none; stroke: black; shape-rendering: crispEdges; }
-.axis text { fill: black; font-family: sans-serif; font-size: 11px; }
-.axis .label { font-size: 11px; }
-.tick { fill:none; stroke: none; }
-
-
-/*circle { stroke:black; opacity:0.7; }*/
-.mark { fill: currentColor; stroke: currentColor; fill-opacity: 0.5; }
 
 
 
