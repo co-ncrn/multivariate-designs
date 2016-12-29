@@ -17,6 +17,8 @@ div.tooltip { position: absolute; padding: 5px 7px; font: 12px sans-serif; backg
 .mark { fill: currentColor; stroke: currentColor; fill-opacity: 0.5; }
 
 
+.box-text { fill: #ffffff; text-anchor:middle; font-family: sans-serif; font-size: 8px }
+
 
 
 /* make viz responsive */

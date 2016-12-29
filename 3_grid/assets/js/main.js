@@ -19,14 +19,21 @@ var sources = [
 	{"name":"occupied (regions)", "data": "16740_hous_occupied_sample.csv","col1":"r_occupiedCV","col2":"r_occupiedE"}
 ];
 
+var current_data = {};
 
-function load_data(source,callback){
+var info = {
+	"cv":0
+};
+
+function load_data(_source,callback){
+	source = _source;
 	d3.csv("../data/"+ sources[source].data, function(data){
 		//console.log(data);
 		data = remove_rows(data,"inf"); 	// remove rows with "inf" (infinity)
 		data = data.slice(0,limit);			// confine to limit
 		display_table(data,"table",40);		// display table
 		//console.log(data);
+		current_data = {"data":data,"col1":sources[source].col1,"col2":sources[source].col2};
 		callback(data,sources[source].col1,sources[source].col2);
 	});
 }
@@ -41,6 +48,20 @@ for (var i in sources){
 		load_data(this.id,update_data);
 	})
 }
+
+var showCV = 1;
+var showData = 1;
+
+
+var options = '<div><button class="btn btn-sm data-btn" id="option_cv_hide">Hide CV</button></div>';
+$(".options").append(options);
+$("#option_cv_hide").on("click",function(){
+	if (showCV) showCV = 0;
+	else showCV = 1;
+	console.log("showCV: "+showCV);
+	update_data(current_data.data,current_data.col1,current_data.col2);
+})
+
 
 
 /* 
@@ -62,6 +83,7 @@ var svg = d3.select("#chart")
 		.classed("svg-content-responsive", true); // class to make it responsive
 
 var estimateGroup = svg.append("g");
+var estimateGroup2 = svg.append("g");
 var cvGroup = svg.append("g");
 
 // create div for the tooltip
@@ -132,7 +154,7 @@ function update_data(data,xCol,yCol){
 		.range([0,1]);
 
 	console.log("xExtent: "+xExtent);
-	console.log(xScale(xExtent[0]),xScale(xExtent[1]));
+	console.log("xExtent (w/scale): "+ xScale(xExtent[0]),xScale(xExtent[1]));
 
 	// set Y min, max
 	var yExtent = d3.extent(data, function(d){ return d[yCol] });
@@ -140,7 +162,7 @@ function update_data(data,xCol,yCol){
 	// function to map Y data (input) onto Y range (output)
 	var yScale = d3.scaleLinear()
 		.domain(yExtent)
-		.range([0,1]); // reverse so 0,0 is bottom,left
+		.range([0,1]); 
 	
 	//console.log("yExtent: "+yExtent);
 	//console.log(yScale(yExtent[0]),yScale(yExtent[1]));
@@ -148,13 +170,17 @@ function update_data(data,xCol,yCol){
 
 
 
-// print out xExtent/yExtent
+	// report xExtent/yExtent
+	var html_out = "<b>RANGE OF VALUES</b>: ";
+	html_out += xCol +" = "+ xExtent[0] +" -> "+ xExtent[1];
+	html_out += " | "+ yCol +" = "+ yExtent[0] +" -> "+ yExtent[1];
+	$("#report").html(html_out);
 
-var html_out = "#value ranges = ";
-html_out += xCol +" = "+ xExtent[0] +" -> "+ xExtent[1];
-html_out += " | "+ yCol +" = "+ yExtent[0] +" -> "+ yExtent[1];
-$("#report").html(html_out);
 
+
+	/*
+	 *	RECTANGLES
+	 */
 
 	var col = row = -1; // reset position
 
@@ -167,7 +193,7 @@ $("#report").html(html_out);
 			.attr("class", "box")
 		.transition().duration(600)
 			.attr("x", function(d,i){ 
-				if (i % sq[0] ===0 ) col = 0;
+				if (i % sq[0] === 0 ) col = 0;
 				else col++;
 				return col*boxW;
 			})
@@ -181,31 +207,62 @@ $("#report").html(html_out);
 			.style("fill", "black")
 			.style("opacity", function(d,i){ return yScale(d[yCol]); }) // change color w/opacity;	
 
-	var col = row = -1; // reset position	
 
-	estimateGroup.selectAll("text")
-		.data(data).enter()
-		.append("text");	
 
-	estimateGroup.selectAll("text")
-		.transition().duration(600)
-			.attr("x", function(d,i){ 
-				if (i % sq[0] ===0 ) col = 0;
-				else col++;
-				return (col*boxW)+(boxW/2) ;
-			})
-			.attr("y", function(d,i){ 
-				if (i % sq[0] === 0 ) row++;
-				return (row*boxH)+(boxH/2);
-			})
-			.text(function(d){
-				return d[xCol];
-			})
-				.attr("text-anchor", "middle")
-		       .attr("font-family", "sans-serif")
-		       .attr("font-size", "9px")
-		       .attr("fill", "white")
-			;
+	/*
+	 *	TEXT
+	 */
+
+
+	if (showData){
+		var col = row = -1; // reset position	
+
+		estimateGroup.selectAll("text.line1")
+			.data(data).enter()
+			.append("text");	
+
+		estimateGroup.selectAll("text")
+				.attr("class", "box-text line1")
+			.transition().duration(600)
+				.attr("x", function(d,i){ 
+					if (i % sq[0] ===0 ) col = 0;
+					else col++;
+					return (col*boxW)+(boxW/2) ;
+				})
+				.attr("y", function(d,i){ 
+					if (i % sq[0] === 0 ) row++;
+					return (row*boxH)+(boxH/2)-4;
+				})
+				.text(function(d){
+					var str = "";
+					str += "CV: "+ d[xCol];
+					return str;
+				})
+
+		var col = row = -1; // reset position	
+
+		estimateGroup2.selectAll("text.line2")
+			.data(data).enter()
+			.append("text");	
+
+		estimateGroup2.selectAll("text")
+				.attr("class", "box-text line2")
+			.transition().duration(600)
+				.attr("x", function(d,i){ 
+					if (i % sq[0] ===0 ) col = 0;
+					else col++;
+					return (col*boxW)+(boxW/2) ;
+				})
+				.attr("y", function(d,i){ 
+					if (i % sq[0] === 0 ) row++;
+					return (row*boxH)+(boxH/2)+7;
+				})
+				.text(function(d){
+					var str = "";
+					str += "E: "+ d[yCol];
+					return str;
+				})
+	}
 
 
 
@@ -225,9 +282,13 @@ $("#report").html(html_out);
 			tooltip.transition().duration(500).style("opacity", 0); 
 		});
 
-var showCV = 1;
 
-	if (showCV){
+
+	/*
+	 *	RED RECTANGLES (CV)
+	 */
+
+	if (showCV === 2){
 
 		var col = row = -1; // reset position
 
@@ -270,7 +331,21 @@ var showCV = 1;
 			});
 	}
 }
-load_data(0,update_data);
+//load_data(0,update_data);
+
+
+var timer = setInterval(myTimer, 2000);
+var r = 0;
+
+function myTimer() {
+	var d = new Date();
+	console.log(d.toLocaleTimeString());
+	//var r = Math.floor(Math.random()*sources.length);
+	if (r == 0) r++;
+	else r = 0;
+	load_data(r,update_data);
+}
+
 
 
 

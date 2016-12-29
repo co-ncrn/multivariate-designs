@@ -20,7 +20,8 @@ var sources = [
 ];
 
 
-function load_data(source,callback){
+function load_data(_source,callback){
+	source = _source;
 	d3.csv("../data/"+ sources[source].data, function(data){
 		//console.log(data);
 		data = remove_rows(data,"inf"); 	// remove rows with "inf" (infinity)
