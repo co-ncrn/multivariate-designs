@@ -50,7 +50,7 @@ for (var i in sources){
 var margin = { top: 20, right: 20, bottom: 50, left: 50 },
 	width = 1000 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
-    boxW = 3, boxH = 2;
+    boxW = 2, boxH = 2;
 
 var svg = d3.select("#chart")
 	.append("div")
@@ -217,7 +217,7 @@ if (status == "tract"){
 		.on("mouseout", function(d) {
 			tooltip.transition().duration(500).style("opacity", 0); 
 		});
-
+/*
 	// select points
 	var box = g.selectAll("rect.box")
 		.data(data).enter()
@@ -258,7 +258,21 @@ if (status == "tract"){
 		.on("mouseout", function(d) {
 			tooltip.transition().duration(500).style("opacity", 0); 
 		});
+*/
+	var tri = d3.symbol()
+            .type(d3.symbolTriangle)
+            .size(15)
+	;
+	var tris = g.selectAll('path')
+			.data(data).enter()
+			.append('path');
 
+	g.selectAll('path')		
+			.attr('d',tri)
+		.transition().duration(700)
+			.attr('fill', "black")
+			//.attr('stroke-width',1)
+			.attr('transform',function(d,i){ return "translate("+ ( xScale(i)+(boxW*3.5) ) +","+ yScale( parseFloat(d[est])) +") rotate (-90) "; });
 
 
 
