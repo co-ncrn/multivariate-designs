@@ -179,17 +179,10 @@ if (status == "tract"){
 		.append("line");
 
 	g.selectAll("line").transition().duration(700)
-	/*
-		.attr("x1", function(d,i){ return xScale( i )+boxW*1.5 }) 
-		.attr("y1", function(d,i){ return yScale( d[errMin] )+boxH*1.5 }) 
-		.attr("x2", function(d,i){ return xScale( i )+boxW*1.5 }) 
-		.attr("y2", function(d,i){ return yScale( d[errMax] )+boxH/1.5 }) 
-		*/
-
-		.attr("x1", function(d,i){ return xScale( i )+boxW*1.5 }) 
-		.attr("y1", function(d,i){ return yScale( d[errMin] )}) 
-		.attr("x2", function(d,i){ return xScale( i )+boxW*1.5 }) 
-		.attr("y2", function(d,i){ return yScale( d[errMax] ) }) 
+		.attr("x1", function(d,i){ return yScale( d[errMin] )}) 
+		.attr("y1", function(d,i){ return xScale( i )+boxW*1.5 }) 
+		.attr("x2", function(d,i){ return yScale( d[errMax] ) }) 
+		.attr("y2", function(d,i){ return xScale( i )+boxW*1.5 }) 
 		.attr("stroke-width", boxW)
 		.attr("stroke", "red");	
 
@@ -272,7 +265,33 @@ if (status == "tract"){
 		.transition().duration(700)
 			.attr('fill', "black")
 			//.attr('stroke-width',1)
-			.attr('transform',function(d,i){ return "translate("+ ( xScale(i)+(boxW*3.5) ) +","+ yScale( parseFloat(d[est])) +") rotate (-90) "; });
+			.attr('transform',function(d,i){ return "translate("+ yScale( parseFloat(d[est]))+10  +","+ xScale(i)+(boxW*10) +") "; });
+
+	// add interaction: show/hide tooltip
+	g.selectAll("path")
+		.on("mouseover", function(d) {
+			//console.log(d3.select(this).attr("id")); // log id
+			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
+			var text = 	"TRACT"+
+						"<br>TID: "+ d["TID"] +
+						"<br>Estimate: "+ d["tractEstimate"] +
+						"<br>Error: "+ d["tractError"] +
+						"<br>Error range: "+ Math.round(d["tractErrorMin"] * 1000) / 1000 +" --> "+ Math.round(d["tractErrorMax"] * 1000) / 1000+
+
+						"<br><br>REGION" +
+						"<br>RID: "+ d["RID"] +
+						"<br>Estimate: "+ d["regionEstimate"]  +
+						"<br>Error: "+ d["regionError"] +
+						"<br>Error range: "+ Math.round(d["regionErrorMin"] * 1000) / 1000 +" --> "+ Math.round(d["regionErrorMax"] * 1000) / 1000
+						;
+			tooltip.html(text)
+				.style("left", (d3.event.pageX) + "px")
+				.style("top", (d3.event.pageY - 40) + "px");
+		})
+		.on("mouseout", function(d) {
+			tooltip.transition().duration(500).style("opacity", 0); 
+		});
+
 
 
 
@@ -290,8 +309,8 @@ load_data(0,"tract",update_data);
 function create_scatterplot_axes(xScale,yScale,err,est){
 
 	// set X/Y axes functions
-	var xAxis = d3.axisBottom().scale(xScale);
-	var yAxis = d3.axisLeft().scale(yScale);
+	var xAxis = d3.axisTop().scale(xScale);
+	var yAxis = d3.axisTop().scale(yScale);
 /*
 	// add X axis properties and call above function
 	d3.select("svg").append("g")
@@ -300,12 +319,12 @@ function create_scatterplot_axes(xScale,yScale,err,est){
 */
 	// add Y axis properties and call above function
 	d3.select("svg").append("g")	
-		.attr("class", "y axis")
-		.attr("transform", "translate(" + (margin.left) + ",0)");
+		.attr("class", "x axis")
+		.attr("transform", "translate(" + margin.left + ","+ margin.top +")");
 
 	// update X/Y axes
 //	d3.select(".x.axis").transition().duration(500).call(xAxis); 
-	d3.select(".y.axis").transition().duration(500).call(yAxis); 
+	d3.select(".x.axis").transition().duration(500).call(yAxis); 
 /*
 	// add X axis label
 	svg.selectAll(".x.axis .label").remove();
@@ -316,14 +335,15 @@ function create_scatterplot_axes(xScale,yScale,err,est){
 			.attr("y", margin.bottom / 1.1)
 			.attr("class", "label");
 */
+/*
 	// add Y axis label
-	svg.selectAll(".y.axis .label").remove();
-	d3.select(".y.axis").append("text")
-		.text(yAxisLabelText + est) 
+	svg.selectAll(".x.axis .label").remove();
+	d3.select(".x.axis").append("text")
+		.text(xAxisLabelText + est) 
 	        .style("text-anchor", "middle")
 			.attr("class", "label")
 			.attr("transform", "rotate (-90, -43, 0) translate(-280)");
-
+*/
 }
 
 
