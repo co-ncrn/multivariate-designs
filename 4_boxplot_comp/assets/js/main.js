@@ -3,7 +3,7 @@
 
 
 var source = 0;	// current data source
-var limit = 80;
+var limit = 40;
 
 // data sources
 var sources = [
@@ -48,7 +48,7 @@ for (var i in sources){
  */
 
 var margin = { top: 20, right: 10, bottom: 20, left: 10 },
-	width = 400 - margin.left - margin.right,
+	width = 600 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
     boxW = 2, boxH = 2;
 
@@ -129,17 +129,20 @@ function update_data(data,status){
 
 
 
-	//var xExtent = d3.extent(data, function(d){ return parseFloat(d["tractError"]) });
-	//xExtent[0] = -.001; // tweak X axis to allow -0
+
 
 	// set min/max (from above data.forEach)
 	var xMin = d3.min(data, function(d) { return parseFloat(d["tractErrorMin"]); });
 	var xMax = d3.max(data, function(d) { return parseFloat(d["tractErrorMax"]); });
 	//console.log([xMin,xMax]);
+	var xExtent = [xMin-.03,xMax];
+
+	//var xExtent = d3.extent(data, function(d){ return parseFloat(d["tractError"]) });
+	//xExtent[0] = -.001; // tweak X axis to allow -0
 
 	// X-SCALE
 	var xScale = d3.scaleLinear()
-		.domain([xMin,xMax])
+		.domain(xExtent).nice()
 		.range([margin.left,width-margin.right]);
 
 
@@ -252,7 +255,7 @@ function update_data(data,status){
 		.transition().duration(700)
 			.attr('fill', "black")
 			//.attr('stroke-width',1)
-			.attr('transform',function(d,i){ console.log(i,yScale(i)+1); return "translate("+ xScale( parseFloat(d[est]))  +","+ yScale(i) +") "; });
+			.attr('transform',function(d,i){ console.log(i,yScale(i)+1); return "translate("+ xScale( parseFloat(d[est]))  +","+ yScale(i+.7) +") "; });
 
 	// add interaction: show/hide tooltip
 	g.selectAll("path")
@@ -284,7 +287,7 @@ function update_data(data,status){
 
 	create_scatterplot_axes(yScale,xScale,err,est);
 }
-load_data(0,"tract",update_data);
+load_data(1,"tract",update_data);
 
 
 

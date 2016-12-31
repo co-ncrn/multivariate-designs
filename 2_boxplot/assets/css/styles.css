@@ -23,3 +23,21 @@
 
 
 .me { fill: red; stroke: #000; stroke-width: 1px; }
+
+
+
+/* make viz responsive */
+
+.svg-container {
+    display: inline-block;
+    position: relative;
+    width: 95%;
+    padding-bottom: 50%; 
+    vertical-align: top;
+    overflow: hidden;
+}
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    left: 0;
+}
