@@ -6,28 +6,32 @@ div.tooltip { position: absolute; padding: 5px 7px; font: 12px sans-serif; backg
 
 
 
-
+/*
 .axis path, .axis line { fill:none; stroke: black; shape-rendering: crispEdges; }
 .axis text { fill: black; font-family: sans-serif; font-size: 11px; }
 .axis .label { font-size: 11px; }
 .tick { fill:none; stroke: none; }
 
 
-/*circle { stroke:black; opacity:0.7; }*/
 .mark { fill: currentColor; stroke: currentColor; fill-opacity: 0.5; }
 
 
 .box-text { fill: #ffffff; text-anchor:middle; font-family: sans-serif; font-size: 8px }
+*/
 
 
+svg {
+	background: #900;
+	width:400px;
+}
 
-/* make viz responsive */
+/* make viz responsive 
 
 .svg-container {
     display: inline-block;
     position: relative;
     width: 95%;
-    padding-bottom: 50%; /* aspect ratio */
+    padding-bottom: 50%; 
     vertical-align: top;
     overflow: hidden;
 }
@@ -36,3 +40,5 @@ div.tooltip { position: absolute; padding: 5px 7px; font: 12px sans-serif; backg
     position: absolute;
     left: 0;
 }
+
+*/

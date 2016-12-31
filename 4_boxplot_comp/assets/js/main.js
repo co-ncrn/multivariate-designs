@@ -47,8 +47,8 @@ for (var i in sources){
  *	SCATTERPLOT PROPERTIES 
  */
 
-var margin = { top: 20, right: 20, bottom: 50, left: 50 },
-	width = 1000 - margin.left - margin.right,
+var margin = { top: 20, right: 10, bottom: 20, left: 10 },
+	width = 400 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
     boxW = 2, boxH = 2;
 
@@ -95,20 +95,20 @@ function update_data(data,status){
 	data.forEach(function(row,i) {
 		//console.log(row);
 
-		// shorter var names
-		data[i].tractError = row[sources[source].tractError];
-		data[i].tractEstimate = row[sources[source].tractEstimate];
-		data[i].regionError = row[sources[source].regionError];
-		data[i].regionEstimate = row[sources[source].regionEstimate];
+		// store names in row
+		data[i].tractError = parseFloat(row[sources[source].tractError]);
+		data[i].tractEstimate = parseFloat(row[sources[source].tractEstimate]);
+		data[i].regionError = parseFloat(row[sources[source].regionError]);
+		data[i].regionEstimate = parseFloat(row[sources[source].regionEstimate]);
 
 		// create TRACT scale (a min / max for each TRACT)
 		// this will be the scale for the axis as well so the change will be obvious
-		data[i].tractErrorMin = parseFloat(data[i].tractEstimate) - parseFloat(data[i].tractError);
-		data[i].tractErrorMax = parseFloat(data[i].tractEstimate) + parseFloat(data[i].tractError);
+		data[i].tractErrorMin = data[i].tractEstimate - data[i].tractError;
+		data[i].tractErrorMax = data[i].tractEstimate + data[i].tractError;
 
 		// create REGION scale (a min / max for each REGION)
-		data[i].regionErrorMin = parseFloat(data[i].regionEstimate) - parseFloat(data[i].regionError);
-		data[i].regionErrorMax = parseFloat(data[i].regionEstimate) + parseFloat(data[i].regionError);
+		data[i].regionErrorMin = data[i].regionEstimate - data[i].regionError;
+		data[i].regionErrorMax = data[i].regionEstimate + data[i].regionError;
 
 		// clean numbers
 		data[i].tractError = Math.round(data[i].tractError * 1000) / 1000;
@@ -120,56 +120,43 @@ function update_data(data,status){
 
 
 
-	// set X min, max
-	//var xExtent = d3.extent(data, function(d){ return parseFloat(d[errorCol]) });
+	// Y-SCALE
+	var yScale = d3.scaleLinear()
+		.domain([0,limit])
+		.range([margin.top,height-margin.bottom]);
+
+
+
+
+
+	//var xExtent = d3.extent(data, function(d){ return parseFloat(d["tractError"]) });
 	//xExtent[0] = -.001; // tweak X axis to allow -0
 
-	// scale xAxis data (domain/input) onto x range (output)
+	// set min/max (from above data.forEach)
+	var xMin = d3.min(data, function(d) { return parseFloat(d["tractErrorMin"]); });
+	var xMax = d3.max(data, function(d) { return parseFloat(d["tractErrorMax"]); });
+	//console.log([xMin,xMax]);
+
+	// X-SCALE
 	var xScale = d3.scaleLinear()
-		.domain([0,limit])
+		.domain([xMin,xMax])
 		.range([margin.left,width-margin.right]);
 
 
 
-	// set Y min, max
-	//var yExtent = d3.extent(data, function(d){ return d[estimateCol] });
 
-	// set min/max above w/ data.forEach
-	var yMin = d3.min(data, function(d) { return parseFloat(d["tractErrorMin"]); });
-	var yMax = d3.max(data, function(d) { return parseFloat(d["tractErrorMax"]); });
-	//console.log( min, max);
-
-	var yExtent = [yMin,yMax]; // note: these are flipped because 0,0 is top,left
-	//console.log(yExtent);
-
-	// function to map Y data (input) onto Y range (output)
-	var yScale = d3.scaleLinear()
-		.domain(yExtent)
-		.range([height-margin.bottom, margin.top]); // reverse so 0,0 is bottom,left
-
-/*
-	var line = g.selectAll("lines").data(data).enter().append("line")
-		.attr("x1", 100) 
-		.attr("y1", 0) 
-		.attr("x2", 100) 
-		.attr("y2", 200)
-		.attr("stroke-width", boxW)
-		.attr("stroke", "red");	
-*/
-
-
-
-if (status == "tract"){
-	var errMin = "tractErrorMin";
-	var errMax = "tractErrorMax";
-	var est = "tractEstimate";
-	var err = "tractError";
-} else {
-	var errMin = "regionErrorMin";
-	var errMax = "regionErrorMax";
-	var est = "regionEstimate";
-	var err = "regionError";
-}
+	// choose one of two different data sources
+	if (status == "tract"){
+		var errMin = "tractErrorMin";
+		var errMax = "tractErrorMax";
+		var est = "tractEstimate";
+		var err = "tractError";
+	} else {
+		var errMin = "regionErrorMin";
+		var errMax = "regionErrorMax";
+		var est = "regionEstimate";
+		var err = "regionError";
+	}
 
 
 
@@ -179,10 +166,10 @@ if (status == "tract"){
 		.append("line");
 
 	g.selectAll("line").transition().duration(700)
-		.attr("x1", function(d,i){ return yScale( d[errMin] )}) 
-		.attr("y1", function(d,i){ return xScale( i )+boxW*1.5 }) 
-		.attr("x2", function(d,i){ return yScale( d[errMax] ) }) 
-		.attr("y2", function(d,i){ return xScale( i )+boxW*1.5 }) 
+		.attr("x1", function(d,i){ return xScale( d[errMin] )}) 
+		.attr("y1", function(d,i){ return yScale( i )+boxW*1.5 }) 
+		.attr("x2", function(d,i){ return xScale( d[errMax] ) }) 
+		.attr("y2", function(d,i){ return yScale( i )+boxW*1.5 }) 
 		.attr("stroke-width", boxW)
 		.attr("stroke", "red");	
 
@@ -219,8 +206,8 @@ if (status == "tract"){
 	g.selectAll("rect")
 			.attr("class", "box")
 		.transition().duration(700)
-			.attr("x", function(d,i){ return xScale( i )+boxW })
-			.attr("y", function(d){ return yScale( parseFloat(d[est]) ) })
+			.attr("x", function(d,i){ return yScale( i )+boxW })
+			.attr("y", function(d){ return xScale( parseFloat(d[est]) ) })
 			.attr("width", boxW)
 			.attr("height", boxH)
 			.attr("id", function(d){ return "box_"+ d[est] +"_"+ d[err] })
@@ -265,7 +252,7 @@ if (status == "tract"){
 		.transition().duration(700)
 			.attr('fill', "black")
 			//.attr('stroke-width',1)
-			.attr('transform',function(d,i){ return "translate("+ yScale( parseFloat(d[est]))+10  +","+ xScale(i)+(boxW*10) +") "; });
+			.attr('transform',function(d,i){ console.log(i,yScale(i)+1); return "translate("+ xScale( parseFloat(d[est]))  +","+ yScale(i) +") "; });
 
 	// add interaction: show/hide tooltip
 	g.selectAll("path")
@@ -295,7 +282,7 @@ if (status == "tract"){
 
 
 
-	create_scatterplot_axes(xScale,yScale,err,est);
+	create_scatterplot_axes(yScale,xScale,err,est);
 }
 load_data(0,"tract",update_data);
 
@@ -306,25 +293,19 @@ load_data(0,"tract",update_data);
 /* 
  *	CREATE AXES + LABELS 
  */
-function create_scatterplot_axes(xScale,yScale,err,est){
+function create_scatterplot_axes(yScale,xScale,err,est){
 
 	// set X/Y axes functions
 	var xAxis = d3.axisTop().scale(xScale);
-	var yAxis = d3.axisTop().scale(yScale);
-/*
+
 	// add X axis properties and call above function
-	d3.select("svg").append("g")
-		.attr("class", "x axis")
-		.attr("transform", "translate(0," + (height-margin.bottom) + ")");
-*/
-	// add Y axis properties and call above function
 	d3.select("svg").append("g")	
 		.attr("class", "x axis")
-		.attr("transform", "translate(" + margin.left + ","+ margin.top +")");
+		.attr("transform", "translate(" + 0 + ","+ margin.top +")");
 
-	// update X/Y axes
-//	d3.select(".x.axis").transition().duration(500).call(xAxis); 
-	d3.select(".x.axis").transition().duration(500).call(yAxis); 
+	// update axis	
+	d3.select(".x.axis").transition().duration(500).call(xAxis); 
+
 /*
 	// add X axis label
 	svg.selectAll(".x.axis .label").remove();
@@ -335,6 +316,19 @@ function create_scatterplot_axes(xScale,yScale,err,est){
 			.attr("y", margin.bottom / 1.1)
 			.attr("class", "label");
 */
+
+
+//	var yAxis = d3.axisTop().scale(xScale);
+/*
+	// add Y axis properties and call above function
+	d3.select("svg").append("g")
+		.attr("class", "y axis")
+		.attr("transform", "translate(0," + (height-margin.bottom) + ")");
+*/
+
+	// update X/Y axes
+//	d3.select(".x.axis").transition().duration(500).call(xAxis); 
+
 /*
 	// add Y axis label
 	svg.selectAll(".x.axis .label").remove();
