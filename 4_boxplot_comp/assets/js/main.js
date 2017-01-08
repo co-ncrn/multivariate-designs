@@ -7,11 +7,26 @@ var limit = 40;
 
 // data sources
 var sources = [
-	{"name":"drvlone", "file": "16740_trans_drvlone_sample.csv","tractError":"t_drvloneM","tractEstimate":"t_drvloneE","regionError":"r_drvloneM","regionEstimate":"r_drvloneE"},
-	{"name":"transit", "file": "16740_trans_transit_sample.csv","tractError":"t_transitM","tractEstimate":"t_transitE","regionError":"r_transitM","regionEstimate":"r_transitE"},
-	{"name":"vehiclpp", "file": "16740_trans_vehiclpp_sample.csv","tractError":"t_vehiclppM","tractEstimate":"t_vehiclppE","regionError":"r_vehiclppM","regionEstimate":"r_vehiclppE"},
-	{"name":"avgrooms", "file": "16740_hous_avgrooms_sample.csv","tractError":"t_avgroomsM","tractEstimate":"t_avgroomsE","regionError":"r_avgroomsM","regionEstimate":"r_avgroomsE"},
-	{"name":"occupied", "file": "16740_hous_occupied_sample.csv","tractError":"t_occupiedM","tractEstimate":"t_occupiedE","regionError":"r_occupiedM","regionEstimate":"r_occupiedE"}
+	{"name":"drvlone", "file": "16740_trans_drvlone_sample.csv",
+		"tractError":"t_drvloneM","tractEstimate":"t_drvloneE","regionError":"r_drvloneM","regionEstimate":"r_drvloneE"},
+	{"name":"transit", "file": "16740_trans_transit_sample.csv",
+		"tractError":"t_transitM","tractEstimate":"t_transitE","regionError":"r_transitM","regionEstimate":"r_transitE"},
+	{"name":"vehiclpp", "file": "16740_trans_vehiclpp_sample.csv",
+		"tractError":"t_vehiclppM","tractEstimate":"t_vehiclppE","regionError":"r_vehiclppM","regionEstimate":"r_vehiclppE"},
+	{"name":"avgrooms", "file": "16740_hous_avgrooms_sample.csv",
+		"tractError":"t_avgroomsM","tractEstimate":"t_avgroomsE","regionError":"r_avgroomsM","regionEstimate":"r_avgroomsE"},
+	{"name":"occupied", "file": "16740_hous_occupied_sample.csv",
+		"tractError":"t_occupiedM","tractEstimate":"t_occupiedE","regionError":"r_occupiedM","regionEstimate":"r_occupiedE"},
+	{"name":"avgrent", "file": "16740_hous_avgrent_sample.csv",
+		"tractError":"t_avgrentM","tractEstimate":"t_avgrentE","regionError":"r_avgrentM","regionEstimate":"r_avgrentE"},
+	{"name":"avgrent (by high MOE)", "file": "16740_hous_avgrent_byMOE_sample.csv",
+		"tractError":"t_avgrentM","tractEstimate":"t_avgrentE","regionError":"r_avgrentM","regionEstimate":"r_avgrentE"},
+	{"name":"avghmval", "file": "16740_hous_avghmval_sample.csv",
+		"tractError":"t_avghmvalM","tractEstimate":"t_avghmvalE","regionError":"r_avghmvalM","regionEstimate":"r_avghmvalE"},
+	{"name":"chabvpov (16740, by high MOE)", "file": "16740_pov_chabvpov_highMOE_sample.csv",
+		"tractError":"t_chabvpovM","tractEstimate":"t_chabvpovE","regionError":"r_chabvpovM","regionEstimate":"r_chabvpovE"},
+	{"name":"chabvpov (16700, by high MOE)", "file": "16700_pov_chabvpov_highMOE_sample.csv",
+		"tractError":"t_chabvpovM","tractEstimate":"t_chabvpovE","regionError":"r_chabvpovM","regionEstimate":"r_chabvpovE"}
 ];
 
 
@@ -47,7 +62,7 @@ for (var i in sources){
  *	SCATTERPLOT PROPERTIES 
  */
 
-var margin = { top: 20, right: 10, bottom: 20, left: 10 },
+var margin = { top: 20, right: 15, bottom: 20, left: 15 },
 	width = 600 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
     boxW = 2, boxH = 2;
@@ -299,12 +314,19 @@ load_data(1,"tract",update_data);
 function create_scatterplot_axes(yScale,xScale,err,est){
 
 	// set X/Y axes functions
-	var xAxis = d3.axisTop().scale(xScale);
+	var xAxis = d3.axisTop()
+		.scale(xScale)
+.ticks(14)		
+.tickSizeInner(-height)
+.tickSizeOuter(0)
+.tickPadding(10)
+	;
 
 	// add X axis properties and call above function
 	d3.select("svg").append("g")	
 		.attr("class", "x axis")
-		.attr("transform", "translate(" + 0 + ","+ margin.top +")");
+		.attr("transform", "translate(" + 0 + ","+ margin.top +")")
+	;
 
 	// update axis	
 	d3.select(".x.axis").transition().duration(500).call(xAxis); 
