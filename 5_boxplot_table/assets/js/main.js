@@ -5,7 +5,7 @@
  */
 
 var source = 0;	// current data source
-var limit = 40; // data limit
+var limit = 20; // data limit
 
 // data sources
 var sources = [
@@ -19,10 +19,10 @@ var sources = [
 		"tractError":"t_avgroomsM","tractEstimate":"t_avgroomsE","regionError":"r_avgroomsM","regionEstimate":"r_avgroomsE"},
 	{"name":"occupied", "file": "16740_hous_occupied_sample.csv",
 		"tractError":"t_occupiedM","tractEstimate":"t_occupiedE","regionError":"r_occupiedM","regionEstimate":"r_occupiedE"},
-	{"name":"avgrent", "file": "16740_hous_avgrent_sample.csv",
-		"tractError":"t_avgrentM","tractEstimate":"t_avgrentE","regionError":"r_avgrentM","regionEstimate":"r_avgrentE"},
-	{"name":"avgrent (by high MOE)", "file": "16740_hous_avgrent_byMOE_sample.csv",
-		"tractError":"t_avgrentM","tractEstimate":"t_avgrentE","regionError":"r_avgrentM","regionEstimate":"r_avgrentE"},
+//	{"name":"avgrent", "file": "16740_hous_avgrent_sample.csv",
+//		"tractError":"t_avgrentM","tractEstimate":"t_avgrentE","regionError":"r_avgrentM","regionEstimate":"r_avgrentE"},
+//	{"name":"avgrent (by high MOE)", "file": "16740_hous_avgrent_byMOE_sample.csv",
+//		"tractError":"t_avgrentM","tractEstimate":"t_avgrentE","regionError":"r_avgrentM","regionEstimate":"r_avgrentE"},
 	{"name":"avghmval", "file": "16740_hous_avghmval_sample.csv",
 		"tractError":"t_avghmvalM","tractEstimate":"t_avghmvalE","regionError":"r_avghmvalM","regionEstimate":"r_avghmvalE"},
 	{"name":"chabvpov (16740, by high MOE)", "file": "16740_pov_chabvpov_highMOE_sample.csv",
@@ -66,12 +66,13 @@ for (var i in sources){
 
 
 // scatterplot properties
-var margin = { top: 20, right: 15, bottom: 20, left: 15 },
+var margin = { top: 20, right: 25, bottom: 20, left: 175 },
 	width = 600 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
     boxW = 2, boxH = 2;
 
-// create chart
+
+// create SVG
 var svg = d3.select("#chart")
 	.append("div")
 		.classed("svg-container", true) //container class to make it responsive
@@ -96,6 +97,90 @@ var tooltip = d3.select("body").append("div")
 
 
 
+
+
+
+
+
+function update_table(data,status,yScale,xScale,err,est){
+
+	console.log(data);
+
+	var colX = [0,82,95,135];
+
+	// TID
+	g.selectAll("text.tid")
+		.data(data).enter()
+		.append("text").attr("class", "tid tableText");
+
+	g.selectAll(".tid")	
+		.text(function(d) { return d["TID"]; })
+			.style("text-anchor", "start")
+			.attr("x", colX[0])
+			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
+	;
+	// RID
+	g.selectAll("text.rid")
+		.data(data).enter()
+		.append("text").attr("class", "rid tableText");
+
+	g.selectAll(".rid")	
+		.text(function(d) { return d["RID"]; })
+			.style("text-anchor", "end")
+			.attr("x", colX[1])
+			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
+	;
+	// ESTIMATE
+	g.selectAll("text.est")
+		.data(data).enter()
+		.append("text").attr("class", "est tableText");
+
+	g.selectAll(".est")	
+		.transition().delay(200)
+		.text(function(d) { return d[est]; })
+			.style("text-anchor", "start")
+			.attr("x", colX[2])
+			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
+	;
+	// ERROR
+	g.selectAll("text.err")
+		.data(data).enter()
+		.append("text").attr("class", "err tableText");
+
+	g.selectAll(".err")	
+		.transition().delay(200)
+		.text(function(d) { return "±"+ d[err]; })
+			.style("text-anchor", "start")
+			.attr("x", colX[3])
+			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
+	;
+
+
+
+}
+
+
+
+function dec_conv(num){
+
+	var decimal = 1000;
+	
+	if (num > 1000) {
+		var decimal = 1;
+	} else if (num > 100){
+		var decimal = 10;
+	} else if (num > 10){
+		var decimal = 10;
+	} else if (num > 1){
+		var decimal = 1000;
+	} else if (num > .1){
+		var decimal = 1000;
+	} else if (num > .01){
+		var decimal = 1000;
+	}
+	num = Math.round(num * decimal) / decimal;
+	return num;
+}
 
 /**
  *	D3 SCATTERPLOT
@@ -125,14 +210,13 @@ function update_data(data,status){
 		data[i].regionErrorMax = data[i].regionEstimate + data[i].regionError;
 
 		// clean numbers
-		data[i].tractError = Math.round(data[i].tractError * 1000) / 1000;
-		data[i].tractEstimate = Math.round(data[i].tractEstimate * 1000) / 1000;
-		data[i].regionError = Math.round(data[i].regionError * 1000) / 1000;
-		data[i].regionEstimate = Math.round(data[i].regionEstimate * 1000) / 1000;
+		data[i].tractError = dec_conv(data[i].tractError);
+		data[i].regionError = dec_conv(data[i].regionError);
+		data[i].tractEstimate = dec_conv(data[i].tractEstimate);
+		data[i].regionEstimate = dec_conv(data[i].regionEstimate);
+
 	});
-	console.log(data[i])
-
-
+	//console.log(data[i])
 
 	// Y-SCALE: based on number of data
 	var yScale = d3.scaleLinear()
@@ -163,6 +247,9 @@ function update_data(data,status){
 	}
 
 
+	update_table(data,status,yScale,xScale,err,est);
+
+
 	// MOE lines
 	var lines = g.selectAll("line")
 		.data(data).enter()
@@ -170,16 +257,18 @@ function update_data(data,status){
 
 	g.selectAll("line").transition().duration(700)
 		.attr("x1", function(d,i){ return xScale( d[errMin] )}) 
-		.attr("y1", function(d,i){ return yScale( i )+boxW*1.5 }) 
+		.attr("y1", function(d,i){ return yScale( i ) + boxW*1.5 }) 
 		.attr("x2", function(d,i){ return xScale( d[errMax] ) }) 
-		.attr("y2", function(d,i){ return yScale( i )+boxW*1.5 }) 
+		.attr("y2", function(d,i){ return yScale( i ) + boxW*1.5 }) 
 		.attr("stroke-width", boxW)
-		.attr("stroke", "red");	
+		.attr("stroke", "red")
+			
+	;	
 
 	// add interaction: show/hide tooltip
 	g.selectAll("line")
 		.on("mouseover", function(d) {
-			console.log(d3.select(this)); // log id
+			//console.log(d3.select(this)); // log id
 			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
 			var text = 	"TRACT"+
 						"<br>TID: "+ d["TID"] +
@@ -257,7 +346,7 @@ function update_data(data,status){
 		.transition().duration(700)
 			.attr('fill', "black")
 			//.attr('stroke-width',1)
-			.attr('transform',function(d,i){ console.log(i,yScale(i)+1); return "translate("+ xScale( parseFloat(d[est]))  +","+ yScale(i+.7) +") "; });
+			.attr('transform',function(d,i){ return "translate("+ xScale( parseFloat(d[est]))  +","+ (yScale(i)+ boxW*3.5) +") "; });
 
 	// add interaction: show/hide tooltip
 	g.selectAll("path")
@@ -289,7 +378,7 @@ function update_data(data,status){
 
 	create_scatterplot_axes(yScale,xScale,err,est);
 }
-load_data(1,"tract",update_data);
+load_data(5,"tract",update_data);
 
 
 
@@ -307,53 +396,19 @@ function create_scatterplot_axes(yScale,xScale,err,est){
 	// set X/Y axes functions
 	var xAxis = d3.axisTop()
 		.scale(xScale)
-			.ticks(14)		
+			.ticks(5)		
 			.tickSizeInner(-height)
 			.tickSizeOuter(0)
 			.tickPadding(10)
 	;
-	
 	// add X axis properties
 	d3.select("svg").append("g")	
-		.attr("class", "x axis")
+		.attr("class", "x axis tableText")
 		.attr("transform", "translate(" + 0 + ","+ margin.top +")")
 	;
-
 	// update axis	
 	d3.select(".x.axis").transition().duration(500).call(xAxis); 
 
-/*
-	// add X axis label
-	svg.selectAll(".x.axis .label").remove();
-	d3.select(".x.axis").append("text")
-		.text(xAxisLabelText + err) 
-        	.style("text-anchor", "middle")
-			.attr("x", (width / 2))
-			.attr("y", margin.bottom / 1.1)
-			.attr("class", "label");
-*/
-
-
-//	var yAxis = d3.axisTop().scale(xScale);
-/*
-	// add Y axis properties and call above function
-	d3.select("svg").append("g")
-		.attr("class", "y axis")
-		.attr("transform", "translate(0," + (height-margin.bottom) + ")");
-*/
-
-	// update X/Y axes
-//	d3.select(".x.axis").transition().duration(500).call(xAxis); 
-
-/*
-	// add Y axis label
-	svg.selectAll(".x.axis .label").remove();
-	d3.select(".x.axis").append("text")
-		.text(xAxisLabelText + est) 
-	        .style("text-anchor", "middle")
-			.attr("class", "label")
-			.attr("transform", "rotate (-90, -43, 0) translate(-280)");
-*/
 }
 
 
