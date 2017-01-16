@@ -1,9 +1,11 @@
 
-
-
+/**
+ *	4_boxplot_comp: A boxplot chart showing MOE (Margin of Error) in ACS data before and after regionalization
+ *	@author Owen Mundy
+ */
 
 var source = 0;	// current data source
-var limit = 40;
+var limit = 40; // data limit
 
 // data sources
 var sources = [
@@ -29,7 +31,12 @@ var sources = [
 		"tractError":"t_chabvpovM","tractEstimate":"t_chabvpovE","regionError":"r_chabvpovM","regionEstimate":"r_chabvpovE"}
 ];
 
-
+/**
+ *	Load data from remote source
+ *	@param {Integer} _source - the data source index
+ *	@param {String} _status - "tract" or "region"
+ *	@param {Function} callback - the callback that handles the response
+ */
 function load_data(_source,_status,callback){
 	source = _source;
 	d3.csv("../data/"+ sources[source]["file"], function(data){
@@ -43,7 +50,7 @@ function load_data(_source,_status,callback){
 }
 
 
-// buttons for data sources
+// add buttons for data sources
 for (var i in sources){
 	var html = '<p><button class="btn btn-sm data-btn" id="tract'+ i +'">'+ sources[i].name +' (tract)</button> ';
 	html += '<button class="btn btn-sm data-btn" id="region'+ i +'">'+ sources[i].name +' (region)</button></p>';
@@ -58,15 +65,13 @@ for (var i in sources){
 }
 
 
-/* 
- *	SCATTERPLOT PROPERTIES 
- */
-
+// scatterplot properties
 var margin = { top: 20, right: 15, bottom: 20, left: 15 },
 	width = 600 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
     boxW = 2, boxH = 2;
 
+// create chart
 var svg = d3.select("#chart")
 	.append("div")
 		.classed("svg-container", true) //container class to make it responsive
@@ -78,13 +83,9 @@ var svg = d3.select("#chart")
 
 var g = svg.append("g");
 
-
-
-
-
+// chart labels
 var xAxisLabelText = "(tract CV) ",
 	xAxisLabelOffset = 0;
-
 var yAxisLabelText = "",
 	yAxisLabelOffset = 30;		
 
@@ -98,19 +99,17 @@ var tooltip = d3.select("body").append("div")
 
 /**
  *	D3 SCATTERPLOT
- *	@data 
- *	@status String tract|region
+ *	@param {Array} data - an array of objects
+ *	@param {String} _status - "tract" or "region"
  */
 function update_data(data,status){
 	//console.log(JSON.stringify(data));
-
-
 
 	// data fixing
 	data.forEach(function(row,i) {
 		//console.log(row);
 
-		// store names in row
+		// store names in row so easier to reference
 		data[i].tractError = parseFloat(row[sources[source].tractError]);
 		data[i].tractEstimate = parseFloat(row[sources[source].tractEstimate]);
 		data[i].regionError = parseFloat(row[sources[source].regionError]);
@@ -135,35 +134,22 @@ function update_data(data,status){
 
 
 
-	// Y-SCALE
+	// Y-SCALE: based on number of data
 	var yScale = d3.scaleLinear()
 		.domain([0,limit])
 		.range([margin.top,height-margin.bottom]);
 
-
-
-
-
-
-
-	// set min/max (from above data.forEach)
+	// X-SCALE: using tract MOE min/max to show difference
 	var xMin = d3.min(data, function(d) { return parseFloat(d["tractErrorMin"]); });
 	var xMax = d3.max(data, function(d) { return parseFloat(d["tractErrorMax"]); });
-	//console.log([xMin,xMax]);
-	var xExtent = [xMin-.03,xMax];
-
-	//var xExtent = d3.extent(data, function(d){ return parseFloat(d["tractError"]) });
-	//xExtent[0] = -.001; // tweak X axis to allow -0
-
-	// X-SCALE
+	var xExtent = [xMin,xMax];
+	// xScale
 	var xScale = d3.scaleLinear()
 		.domain(xExtent).nice()
 		.range([margin.left,width-margin.right]);
 
 
-
-
-	// choose one of two different data sources
+	// are we currently displaying tracts or regions
 	if (status == "tract"){
 		var errMin = "tractErrorMin";
 		var errMax = "tractErrorMax";
@@ -177,8 +163,7 @@ function update_data(data,status){
 	}
 
 
-
-	// MARGIN OF ERROR LINES
+	// MOE lines
 	var lines = g.selectAll("line")
 		.data(data).enter()
 		.append("line");
@@ -257,6 +242,8 @@ function update_data(data,status){
 			tooltip.transition().duration(500).style("opacity", 0); 
 		});
 */
+
+	// TRIANGLES
 	var tri = d3.symbol()
             .type(d3.symbolTriangle)
             .size(15)
@@ -309,20 +296,24 @@ load_data(1,"tract",update_data);
 
 
 /* 
- *	CREATE AXES + LABELS 
+ *	Create axes and labels
+ *	@param {Function} yScale - returns a scale
+ *	@param {Function} xScale - returns a scale
+ *	@param {Float} err - "tractError" or "regionError" from above
+ *	@param {Float} est - "tractEst" or "regionEst" from above
  */
 function create_scatterplot_axes(yScale,xScale,err,est){
 
 	// set X/Y axes functions
 	var xAxis = d3.axisTop()
 		.scale(xScale)
-.ticks(14)		
-.tickSizeInner(-height)
-.tickSizeOuter(0)
-.tickPadding(10)
+			.ticks(14)		
+			.tickSizeInner(-height)
+			.tickSizeOuter(0)
+			.tickPadding(10)
 	;
-
-	// add X axis properties and call above function
+	
+	// add X axis properties
 	d3.select("svg").append("g")	
 		.attr("class", "x axis")
 		.attr("transform", "translate(" + 0 + ","+ margin.top +")")

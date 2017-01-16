@@ -3,10 +3,8 @@
 
 
 /**
- *
+ *	Project specific navigation
  */
-
-
 var info = [
 	'<a href="https://beckymasond.github.io/" target="_blank">data</a>',
 	' | <a href="https://github.com/co-ncrn/multivariate-testing" target="_blank">code</a>'
@@ -33,6 +31,8 @@ display_info(".header_links",header_links);
 
 /**
  *	Load a remote CSV file
+ *	@param {String} file - remote file url
+ *	@param {Function} callback - the callback that handles the response
  */
 function load_csv(file,callback){
 	$.ajax({
@@ -46,6 +46,7 @@ function load_csv(file,callback){
 
 /**
  *	Return all the keys from an array
+ *	@param {Array} data - array of objects
  */
 function return_keys(data){
 	var keys = [];
@@ -56,7 +57,9 @@ function return_keys(data){
 
 
 /**
- *	Remove rows with <removestr> from data
+ *	Remove rows with <removestr> from array
+ *	@param {Array} data - array
+ *	@param {String} removestr - string to remove
  */
 function remove_rows(data,removestr){
 
@@ -77,6 +80,9 @@ function remove_rows(data,removestr){
 
 /**
  *	Display CSV table in HTML
+ *	@param {Array} arr - array
+ *	@param {Integer} id - id of row to display
+ *	@param {Integer} limit - max amount to display
  */
 function display_table(arr,id,limit){
 
@@ -115,10 +121,11 @@ function display_table(arr,id,limit){
 }
 
 
-
 // colores usados por Google en sus graficos, trends, etc.
 function colores_google(n=11) {
 	var c = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", 
 			 "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
 	return c[n % c.length];
 }
+
+
