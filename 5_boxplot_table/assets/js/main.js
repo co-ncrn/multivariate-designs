@@ -118,6 +118,9 @@ function update_table(data,status,yScale,xScale,err,est){
 			.style("text-anchor", "start")
 			.attr("x", colX[0])
 			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
+		.on("mouseover", function(d) {
+			update_data(data,"tract");
+		})	
 	;
 	// RID
 	g.selectAll("text.rid")
@@ -129,6 +132,9 @@ function update_table(data,status,yScale,xScale,err,est){
 			.style("text-anchor", "end")
 			.attr("x", colX[1])
 			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
+		.on("mouseover", function(d) {
+			update_data(data,"region");
+		})		
 	;
 	// ESTIMATE
 	g.selectAll("text.est")
@@ -376,7 +382,7 @@ function update_data(data,status){
 
 
 
-	create_scatterplot_axes(yScale,xScale,err,est);
+	create_scatterplot_axes(data,yScale,xScale,err,est);
 }
 load_data(5,"tract",update_data);
 
@@ -391,12 +397,16 @@ load_data(5,"tract",update_data);
  *	@param {Float} err - "tractError" or "regionError" from above
  *	@param {Float} est - "tractEst" or "regionEst" from above
  */
-function create_scatterplot_axes(yScale,xScale,err,est){
+function create_scatterplot_axes(data,yScale,xScale,err,est){
+
+	// keep tick labels from overlapping
+	var ticks = 5;
+	if (parseFloat(data[0][est]) > 1000) ticks = 4;
 
 	// set X/Y axes functions
 	var xAxis = d3.axisTop()
 		.scale(xScale)
-			.ticks(5)		
+			.ticks(ticks)		
 			.tickSizeInner(-height)
 			.tickSizeOuter(0)
 			.tickPadding(10)
