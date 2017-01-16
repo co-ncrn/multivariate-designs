@@ -13,7 +13,8 @@ var header_links = [
 	'<a href="../1_scatterplot/">1_scatterplot</a>',
 	'<a href="../2_boxplot/">2_boxplot</a>',
 	'<a href="../3_grid/">3_grid</a>' ,
-	'<a href="../4_boxplot_comp/">4_boxplot_comp</a>' 
+	'<a href="../4_boxplot_comp/">4_boxplot_comp</a>',
+	'<a href="../5_boxplot_table/">5_boxplot_table</a>' 
 ];
 function display_info(node,data){
 	

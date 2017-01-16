@@ -1,0 +1,16 @@
+
+svg {
+	background: #fff;
+	width:600px;
+}
+
+
+.tick text { stroke-width: 1px; opacity: .8; }
+.tick line { stroke-width: 1px; opacity: .2; }
+
+
+
+.axis path {
+  display: none;
+}
+
