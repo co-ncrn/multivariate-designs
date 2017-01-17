@@ -4,8 +4,9 @@
  *	@author Owen Mundy
  */
 
-var source = 0;	// current data source
-var limit = 20; // data limit
+var source = 0,	// current data source
+	limit = 20, // data limit
+	status = "tract"; // current regselector status
 
 // data sources
 var sources = [
@@ -34,10 +35,10 @@ var sources = [
 /**
  *	Load data from remote source
  *	@param {Integer} _source - the data source index
- *	@param {String} _status - "tract" or "region"
+ *	@param {String} status - "tract" or "region"
  *	@param {Function} callback - the callback that handles the response
  */
-function load_data(_source,_status,callback){
+function load_data(_source,status,callback){
 	source = _source;
 	d3.csv("../data/"+ sources[source]["file"], function(data){
 		//console.log(data);
@@ -45,7 +46,7 @@ function load_data(_source,_status,callback){
 		data = data.slice(0,limit);			// confine to limit
 		display_table(data,"table",40);		// display table
 		//console.log(data);
-		callback(data,_status);
+		callback(data,status);
 	});
 }
 
@@ -102,39 +103,179 @@ var tooltip = d3.select("body").append("div")
 
 
 
+function select_row(node,state){
+	console.log(node);
+	set_colW(node)
+
+	if (state == "on"){
+		d3.select(node).transition().style("fill","#990000");
+	} else {
+		d3.select(node).transition().style("fill","#000000");	
+	}
+	
+
+}
+var colW = 20, 
+	colN = 0,
+	colPadding = 4;
+function set_colW(node){
+	colW = node.getBBox().width +colPadding;
+	//console.log(colW);
+}
+
+function set_regselector(node,_status,_colN){
+
+	// called from either tract or region column
+
+	// if status is different
+	if (status != _status){
+		status = _status; // update status
+		colN = _colN;
+
+		// move the rectangle 
+
+		// update data
+
+	}
+
+
+
+
+	// irregardless ...
+	
+	// show on map
+
+	// highlight row/field
+
+
+
+
+	select_row(this,"on");
+	
+	update_data(data,"tract");
+
+}
+
+
 function update_table(data,status,yScale,xScale,err,est){
 
 	console.log(data);
 
-	var colX = [0,82,95,135];
 
-	// TID
-	g.selectAll("text.tid")
+
+
+	var colX = [10,92,105,145], 
+		charW = 10,
+		colH = 16;
+
+	// TID/RID selector boxes
+	g.selectAll("rect.regselector")
 		.data(data).enter()
-		.append("text").attr("class", "tid tableText");
+		.append("rect").attr("class", function(d,i){ return "regselector row_"+i; });
 
-	g.selectAll(".tid")	
+	g.selectAll("rect.regselector")	
+		.transition().duration(700)
+			.attr("x", colX[colN]-2)
+			.attr("y", function(d,i){ return yScale( i )-colH/2  })
+			.attr("width", colW)
+			.attr("height", colH)
+			//.attr("id", function(d){ return "box_"+ d[est] +"_"+ d[err] })
+			.style("opacity", 1.0)
+			.style("fill", "#9bcdcd");	
+/*
+
 		.text(function(d) { return d["TID"]; })
 			.style("text-anchor", "start")
 			.attr("x", colX[0])
 			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
 		.on("mouseover", function(d) {
+			select_row(this,"on");
 			update_data(data,"tract");
 		})	
+		.on("mouseout", function(d) {
+			select_row(this,"off");
+		})	
 	;
+
+
+
+
+
+	// add interaction: show/hide tooltip
+	g.selectAll("rect.box")
+		.on("mouseover", function(d) {
+			//console.log(d3.select(this).attr("id")); // log id
+			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
+			var text = 	"TRACT"+
+						"<br>TID: "+ d["TID"] +
+						"<br>Estimate: "+ d["tractEstimate"] +
+						"<br>Error: "+ d["tractError"] +
+						"<br>Error range: "+ Math.round(d["tractErrorMin"] * 1000) / 1000 +" --> "+ Math.round(d["tractErrorMax"] * 1000) / 1000+
+
+						"<br><br>REGION" +
+						"<br>RID: "+ d["RID"] +
+						"<br>Estimate: "+ d["regionEstimate"]  +
+						"<br>Error: "+ d["regionError"] +
+						"<br>Error range: "+ Math.round(d["regionErrorMin"] * 1000) / 1000 +" --> "+ Math.round(d["regionErrorMax"] * 1000) / 1000
+						;
+			tooltip.html(text)
+				.style("left", (d3.event.pageX) + "px")
+				.style("top", (d3.event.pageY - 40) + "px");
+		})
+		.on("mouseout", function(d) {
+			tooltip.transition().duration(500).style("opacity", 0); 
+		});
+
+
+
+
+*/
+
+
+
+
+
+
+	// TID text
+	g.selectAll("text.tid")
+		.data(data).enter()
+		.append("text").attr("class", function(d,i){ return "tid tableText row_"+i +" col_tid"; });
+
+	g.selectAll(".tid")	
+		.text(function(d) { return d["TID"].replace("g",""); })
+			.style("text-anchor", "start")
+			.attr("x", colX[0])
+			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
+		.on("mouseover", function(d) {
+			//set_regselector(this,"tract",0)
+
+			select_row(this,"on");
+			colN = 0;
+			update_data(data,"tract");
+		})	
+		.on("mouseout", function(d) {
+			select_row(this,"off");
+		})	
+	;
+
 	// RID
 	g.selectAll("text.rid")
 		.data(data).enter()
 		.append("text").attr("class", "rid tableText");
 
-	g.selectAll(".rid")	
+	g.selectAll("text.rid")	
 		.text(function(d) { return d["RID"]; })
 			.style("text-anchor", "end")
 			.attr("x", colX[1])
 			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
 		.on("mouseover", function(d) {
+			select_row(this,"on");
+			colN = 1;
 			update_data(data,"region");
-		})		
+		})	
+		.on("mouseout", function(d) {
+			select_row(this,"off");
+		})	
 	;
 	// ESTIMATE
 	g.selectAll("text.est")
@@ -191,10 +332,11 @@ function dec_conv(num){
 /**
  *	D3 SCATTERPLOT
  *	@param {Array} data - an array of objects
- *	@param {String} _status - "tract" or "region"
+ *	@param {String} status - "tract" or "region"
  */
 function update_data(data,status){
 	//console.log(JSON.stringify(data));
+
 
 	// data fixing
 	data.forEach(function(row,i) {
@@ -268,7 +410,6 @@ function update_data(data,status){
 		.attr("y2", function(d,i){ return yScale( i ) + boxW*1.5 }) 
 		.attr("stroke-width", boxW)
 		.attr("stroke", "red")
-			
 	;	
 
 	// add interaction: show/hide tooltip

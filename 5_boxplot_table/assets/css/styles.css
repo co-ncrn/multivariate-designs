@@ -17,4 +17,5 @@ svg {
 
 
 .tableText { font-size: 9px; }
+.tableText:hover { fill: #990000; cursor: default; }
 .axis text { font-size: 9px; }
