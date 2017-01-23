@@ -18,19 +18,13 @@
 <div class="container-fluid">
 
 	<h1>
-		5. Boxplot + Table + Interaction (bivariate, limited to 40 points) 
-		<p>This version shows the boxplot with an interactive table. This is the first of three ways to build a table with viz elements on each line.</p>
-		<ol>
-		<li>Everything is embedded in a single SVG as graphic elements. This causes problems because the table size needs to grow/shrink based on how many tracts are visible in the map. </li>
-		<li>Everything is embedded in a single SVG as table elements. Same as above.</li>
-		<li>Everything is embedded in an HTML Table (though still using D3). This should allow the length of the table to change dynamically, as long as I can still add the boxplot viz to each table row. Version 6 of the boxplot will attempt this.</li>
-		</ol>
+		6. Boxplot + (HTML)Table + Interaction (bivariate, point number is randomized) 
 		<span class="header_links"></span>
 	</h1>
 
 	<div class="row">
-		<div class="col-md-6" id="viz">
-			<div id="table2" class="tableText"></div>
+		<div class="col-md-6" id="chart-container">
+			<div id="chart2" class="tableText"></div>
 			<div id="chart"></div>
 		</div>
 		<div class="col-md-6">

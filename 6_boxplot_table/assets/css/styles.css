@@ -1,0 +1,43 @@
+
+
+#chart-container { height:400px; width:650px; overflow-y:auto; }
+
+
+
+#chart { float: left; }
+#chart2 { float: left; }
+
+
+
+svg {
+	background: #fff;
+	width:600px;
+}
+
+
+
+.tick text { stroke-width: 1px; opacity: 1.0; }
+.tick line { stroke-width: 1px; opacity: .2; }
+
+
+
+.tableText:hover { fill: #990000; cursor: default; }
+.headings {  }
+.axis text { font-size: 9px; }
+.axis path { display: none; }
+
+
+
+
+
+
+#chart2 table { border-collapse: collapse; font: 10px sans-serif; width: 720px; font-size: 12px; }
+#chart2 th { font-weight: normal; text-align: center; padding: 6px; min-width: 50px; }
+#chart2 tbody td { padding: 5; text-align: center; }
+
+/*
+#chart2 tbody tr:first-child td { padding-top: 2px; }
+
+#chart2 tbody rect { fill: "#990000"; }
+#chart2 tbody tr:hover rect { fill: brown; }
+*/
