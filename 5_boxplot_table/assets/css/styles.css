@@ -1,11 +1,21 @@
 
+
+#chart { float: left; }
+#table2 { background: #900; width: 200px; float: left; }
+
 svg {
 	background: #fff;
 	width:600px;
 }
 
+#viz {
+	height:400px;
+	width:650px;
+	overflow-y:auto;
+}
 
-.tick text { stroke-width: 1px; opacity: .8; }
+
+.tick text { stroke-width: 1px; opacity: 1.0; }
 .tick line { stroke-width: 1px; opacity: .2; }
 
 
@@ -18,4 +28,5 @@ svg {
 
 .tableText { font-size: 9px; }
 .tableText:hover { fill: #990000; cursor: default; }
+.headings {  }
 .axis text { font-size: 9px; }

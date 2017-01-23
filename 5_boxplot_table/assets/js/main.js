@@ -5,7 +5,7 @@
  */
 
 var source = 0,	// current data source
-	limit = 20, // data limit
+	limit = 30, // data limit
 	status = "tract"; // current regselector status
 
 // data sources
@@ -43,12 +43,19 @@ function load_data(_source,status,callback){
 	d3.csv("../data/"+ sources[source]["file"], function(data){
 		//console.log(data);
 		data = remove_rows(data,"inf"); 	// remove rows with "inf" (infinity)
+		//limit = Math.ceil(Math.random()*100);
 		data = data.slice(0,limit);			// confine to limit
-		display_table(data,"table",40);		// display table
+		display_table(data,"table",limit);		// display table
 		//console.log(data);
 		callback(data,status);
 	});
 }
+
+
+
+
+
+
 
 
 // add buttons for data sources
@@ -67,10 +74,23 @@ for (var i in sources){
 
 
 // scatterplot properties
-var margin = { top: 20, right: 25, bottom: 20, left: 175 },
+var margin = { top: 40, right: 25, bottom: 20, left: 175 },
 	width = 600 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom,
-    boxW = 2, boxH = 2;
+    boxW = 1, boxH = 2;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // create SVG
@@ -98,142 +118,102 @@ var tooltip = d3.select("body").append("div")
 
 
 
+  var colors = [
+    '#cdf1f5',
+    '#a8d3dd',
+    '#81b2c1',
+    '#58919d',
+    '#53828e',
+    '#58919d',
+    '#81b2c1',
+    '#a8d3dd'
+  ];
 
 
+var colX = [10,75,98,138],
+	colWs = [65,20],
+	charW = 10,
+	colH = 18;
+var colW = colWs[0], 
+	colN = 0,
+	colPaddingW = 5;
 
 
+function set_colW(node){
+	// width of node + padding on both sides
+	return node.getBBox().width + (colPaddingW*2);
+}
 
-function select_row(node,state){
-	console.log(node);
-	set_colW(node)
 
+function select_field(node,state){
+	colW = set_colW(node);
+/*
 	if (state == "on"){
 		d3.select(node).transition().style("fill","#990000");
 	} else {
 		d3.select(node).transition().style("fill","#000000");	
 	}
-	
+*/
+
+
 
 }
-var colW = 20, 
-	colN = 0,
-	colPadding = 4;
-function set_colW(node){
-	colW = node.getBBox().width +colPadding;
-	//console.log(colW);
-}
-
-function set_regselector(node,_status,_colN){
-
-	// called from either tract or region column
-
-	// if status is different
-	if (status != _status){
-		status = _status; // update status
-		colN = _colN;
-
-		// move the rectangle 
-
-		// update data
-
-	}
 
 
 
 
-	// irregardless ...
-	
-	// show on map
-
-	// highlight row/field
-
-
-
-
-	select_row(this,"on");
-	
-	update_data(data,"tract");
-
-}
 
 
 function update_table(data,status,yScale,xScale,err,est){
 
-	console.log(data);
+	//console.log(data);
+	console.log(data,status,yScale,xScale,err,est);
 
 
 
 
-	var colX = [10,92,105,145], 
-		charW = 10,
-		colH = 16;
 
-	// TID/RID selector boxes
+	// TID/RID vertical selector box
 	g.selectAll("rect.regselector")
 		.data(data).enter()
 		.append("rect").attr("class", function(d,i){ return "regselector row_"+i; });
 
+	var x = colX[colN];
+	if (status == "region") x = colX[1]-colPaddingW;
 	g.selectAll("rect.regselector")	
 		.transition().duration(700)
-			.attr("x", colX[colN]-2)
+			.attr("x", x-colPaddingW)
 			.attr("y", function(d,i){ return yScale( i )-colH/2  })
 			.attr("width", colW)
 			.attr("height", colH)
 			//.attr("id", function(d){ return "box_"+ d[est] +"_"+ d[err] })
 			.style("opacity", 1.0)
 			.style("fill", "#9bcdcd");	
-/*
 
-		.text(function(d) { return d["TID"]; })
-			.style("text-anchor", "start")
-			.attr("x", colX[0])
-			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
+
+	var headings = ["Tract","Region","Estimate","Error"];
+
+	// COLUMN HEADINGS
+	g.selectAll("text.headings")
+		.data(headings).enter()
+		.append("text").attr("class", function(d,i){ return "headings tableText"; });
+
+	g.selectAll(".headings")	
+		.text(function(d){ return d; })
+			.style("text-anchor", "middle")
+			.attr("x", function(d,i){ return colX[i]+20 })
+			.attr("y", function(d,i){ return margin.top-15 })
+			//.attr("transform", "translate(" + 0 + ","+ margin.top +")")
 		.on("mouseover", function(d) {
-			select_row(this,"on");
+
+			select_field(this,"on");
+			colN = 0;
 			update_data(data,"tract");
 		})	
 		.on("mouseout", function(d) {
-			select_row(this,"off");
+			select_field(this,"off");
 		})	
 	;
-
-
-
-
-
-	// add interaction: show/hide tooltip
-	g.selectAll("rect.box")
-		.on("mouseover", function(d) {
-			//console.log(d3.select(this).attr("id")); // log id
-			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
-			var text = 	"TRACT"+
-						"<br>TID: "+ d["TID"] +
-						"<br>Estimate: "+ d["tractEstimate"] +
-						"<br>Error: "+ d["tractError"] +
-						"<br>Error range: "+ Math.round(d["tractErrorMin"] * 1000) / 1000 +" --> "+ Math.round(d["tractErrorMax"] * 1000) / 1000+
-
-						"<br><br>REGION" +
-						"<br>RID: "+ d["RID"] +
-						"<br>Estimate: "+ d["regionEstimate"]  +
-						"<br>Error: "+ d["regionError"] +
-						"<br>Error range: "+ Math.round(d["regionErrorMin"] * 1000) / 1000 +" --> "+ Math.round(d["regionErrorMax"] * 1000) / 1000
-						;
-			tooltip.html(text)
-				.style("left", (d3.event.pageX) + "px")
-				.style("top", (d3.event.pageY - 40) + "px");
-		})
-		.on("mouseout", function(d) {
-			tooltip.transition().duration(500).style("opacity", 0); 
-		});
-
-
-
-
-*/
-
-
-
-
 
 
 	// TID text
@@ -247,18 +227,17 @@ function update_table(data,status,yScale,xScale,err,est){
 			.attr("x", colX[0])
 			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
 		.on("mouseover", function(d) {
-			//set_regselector(this,"tract",0)
 
-			select_row(this,"on");
+			select_field(this,"on");
 			colN = 0;
 			update_data(data,"tract");
 		})	
 		.on("mouseout", function(d) {
-			select_row(this,"off");
+			select_field(this,"off");
 		})	
 	;
-
-	// RID
+ 
+	// RID text
 	g.selectAll("text.rid")
 		.data(data).enter()
 		.append("text").attr("class", "rid tableText");
@@ -269,12 +248,12 @@ function update_table(data,status,yScale,xScale,err,est){
 			.attr("x", colX[1])
 			.attr("y", function(d,i){ return yScale( i ) + boxW*1.5 })
 		.on("mouseover", function(d) {
-			select_row(this,"on");
+			select_field(this,"on");
 			colN = 1;
 			update_data(data,"region");
 		})	
 		.on("mouseout", function(d) {
-			select_row(this,"off");
+			select_field(this,"off");
 		})	
 	;
 	// ESTIMATE
@@ -396,14 +375,42 @@ function update_data(data,status){
 
 
 	update_table(data,status,yScale,xScale,err,est);
+	
 
 
-	// MOE lines
-	var lines = g.selectAll("line")
+
+	// MOE vertical lines
+	g.selectAll("line.moeV1")
 		.data(data).enter()
-		.append("line");
+		.append("line").attr("class", "moeV1");
+	
+	g.selectAll("line.moeV1").transition().duration(700)
+		.attr("x1", function(d,i){ return xScale( d[errMin] )}) 
+		.attr("y1", function(d,i){ return yScale( i ) + -boxW }) 
+		.attr("x2", function(d,i){ return xScale( d[errMin] ) }) 
+		.attr("y2", function(d,i){ return yScale( i ) + boxW*4 }) 
+		.attr("stroke-width", boxW)
+		.attr("stroke", "red")
+	;
+	g.selectAll("line.moeV2")
+		.data(data).enter()
+		.append("line").attr("class", "moeV2");
+	
+	g.selectAll("line.moeV2").transition().duration(700)
+		.attr("x1", function(d,i){ return xScale( d[errMax] )}) 
+		.attr("y1", function(d,i){ return yScale( i ) + -boxW }) 
+		.attr("x2", function(d,i){ return xScale( d[errMax] ) }) 
+		.attr("y2", function(d,i){ return yScale( i ) + boxW*4 }) 
+		.attr("stroke-width", boxW)
+		.attr("stroke", "red")
+	;	
 
-	g.selectAll("line").transition().duration(700)
+	// MOE horizontal lines
+	g.selectAll("line.moeH")
+		.data(data).enter()
+		.append("line").attr("class", "moeH");
+
+	g.selectAll("line.moeH").transition().duration(700)
 		.attr("x1", function(d,i){ return xScale( d[errMin] )}) 
 		.attr("y1", function(d,i){ return yScale( i ) + boxW*1.5 }) 
 		.attr("x2", function(d,i){ return xScale( d[errMax] ) }) 
@@ -413,7 +420,7 @@ function update_data(data,status){
 	;	
 
 	// add interaction: show/hide tooltip
-	g.selectAll("line")
+	g.selectAll("line.moeH")
 		.on("mouseover", function(d) {
 			//console.log(d3.select(this)); // log id
 			tooltip.transition().duration(200).style("opacity", .9); // show tooltip
@@ -555,7 +562,7 @@ function create_scatterplot_axes(data,yScale,xScale,err,est){
 	// add X axis properties
 	d3.select("svg").append("g")	
 		.attr("class", "x axis tableText")
-		.attr("transform", "translate(" + 0 + ","+ margin.top +")")
+		.attr("transform", "translate(" + 0 + ","+ (margin.top-8) +")")
 	;
 	// update axis	
 	d3.select(".x.axis").transition().duration(500).call(xAxis); 
