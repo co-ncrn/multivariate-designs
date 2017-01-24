@@ -1,18 +1,33 @@
 
 
-#chart-container { height:400px; width:650px; overflow-y:auto; }
+#chart-container { height:360px; width:700px; overflow-y:auto; }
 
 
 
-#chart { float: left; }
-#chart2 { float: left; }
+#chart { }
 
 
+#chart table { border-collapse: collapse; font: 12px sans-serif; width: 500px; }
+#chart th { font-weight: normal; text-align: center; padding: 6px; min-width: 40px; }
+#chart th svg { height: 20; }
+#chart tbody td { padding: 3px 5px; text-align: center; border: 1px solid #ccc; }
+#chart tbody td.svgCell { text-align: left; margin:0; padding:0; }
+#chart tbody td.svgCell svg {  }
+.svgBar { fill: red; }
 
-svg {
-	background: #fff;
-	width:600px;
+.tid:hover, .rid:hover { cursor: pointer; cursor: hand; } 
+
+td.highlight {
+    background-color: #81b2c1
 }
+
+/*
+#chart tbody tr:first-child td { padding-top: 2px; }
+
+#chart tbody rect { fill: "#990000"; }
+#chart tbody tr:hover rect { fill: brown; }
+*/
+
 
 
 
@@ -21,9 +36,13 @@ svg {
 
 
 
-.tableText:hover { fill: #990000; cursor: default; }
 .headings {  }
-.axis text { font-size: 9px; }
+
+
+
+
+
+.axis text { font-size: 12px; }
 .axis path { display: none; }
 
 
@@ -31,13 +50,3 @@ svg {
 
 
 
-#chart2 table { border-collapse: collapse; font: 10px sans-serif; width: 720px; font-size: 12px; }
-#chart2 th { font-weight: normal; text-align: center; padding: 6px; min-width: 50px; }
-#chart2 tbody td { padding: 5; text-align: center; }
-
-/*
-#chart2 tbody tr:first-child td { padding-top: 2px; }
-
-#chart2 tbody rect { fill: "#990000"; }
-#chart2 tbody tr:hover rect { fill: brown; }
-*/

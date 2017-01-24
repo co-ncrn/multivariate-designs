@@ -5,7 +5,7 @@
  */
 
 var source = 0,	// current data source
-	limit = 30, // data limit
+	limit = 10, // data limit
 	status = "tract"; // current regselector status
 
 // data sources
@@ -43,7 +43,7 @@ function load_data(_source,status,callback){
 	d3.csv("../data/"+ sources[source]["file"], function(data){
 		//console.log(data);
 		data = remove_rows(data,"inf"); 		// remove rows with "inf" (infinity)
-		limit = Math.ceil(Math.random()*100); 	// limit is randomized to mimic map interaction
+		//limit = Math.ceil(Math.random()*10)+10; 	// limit is randomized to mimic map interaction
 		data = data.slice(0,limit);				// confine to limit
 		display_table(data,"table",limit);		// display table
 		//console.log(data);
@@ -52,8 +52,55 @@ function load_data(_source,status,callback){
 }
 
 
+function fixdata(data){
+	// data fixing
+	data.forEach(function(row,i) {
+		//console.log(row);
 
+		// store names in row so easier to reference
+		data[i].tractError = parseFloat(row[sources[source].tractError]);
+		data[i].tractEstimate = parseFloat(row[sources[source].tractEstimate]);
+		data[i].regionError = parseFloat(row[sources[source].regionError]);
+		data[i].regionEstimate = parseFloat(row[sources[source].regionEstimate]);
 
+		// create TRACT scale (a min / max for each TRACT)
+		// this will be the scale for the axis as well so the change will be obvious
+		data[i].tractErrorMin = data[i].tractEstimate - data[i].tractError;
+		data[i].tractErrorMax = data[i].tractEstimate + data[i].tractError;
+
+		// create REGION scale (a min / max for each REGION)
+		data[i].regionErrorMin = data[i].regionEstimate - data[i].regionError;
+		data[i].regionErrorMax = data[i].regionEstimate + data[i].regionError;
+
+		// clean numbers
+		data[i].tractError = dec_conv(data[i].tractError);
+		data[i].regionError = dec_conv(data[i].regionError);
+		data[i].tractEstimate = dec_conv(data[i].tractEstimate);
+		data[i].regionEstimate = dec_conv(data[i].regionEstimate);
+
+	});
+	return data;
+}
+function dec_conv(num){
+
+	var decimal = 1000;
+	
+	if (num > 1000) {
+		var decimal = 1;
+	} else if (num > 100){
+		var decimal = 10;
+	} else if (num > 10){
+		var decimal = 10;
+	} else if (num > 1){
+		var decimal = 1000;
+	} else if (num > .1){
+		var decimal = 1000;
+	} else if (num > .01){
+		var decimal = 1000;
+	}
+	num = Math.round(num * decimal) / decimal;
+	return num;
+}
 
 
 
@@ -65,36 +112,27 @@ for (var i in sources){
 	$(".sources").append(html);
 	// add listeners
 	$("#tract"+ i).on("mouseover",function(){
-		load_data(this.id.substr(this.id.length - 1),"tract",update_data);
+		load_data(this.id.substr(this.id.length - 1),"tract",tabulate);
 	});
 	$("#region"+ i).on("mouseover",function(){
-		load_data(this.id.substr(this.id.length - 1),"region",update_data);
+		load_data(this.id.substr(this.id.length - 1),"region",tabulate);
 	});
 }
 
 
-// scatterplot properties
-var margin = { top: 40, right: 25, bottom: 20, left: 175 },
-	width = 600 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom,
-    boxW = 1, boxH = 2;
 
-
-
-
-
-
+/**
+ *	Return the Current Data Object
+ */
 function return_cdo(status){
-
 	var cdo = {};
-
 	// are we currently displaying tracts or regions
 	if (status == "tract"){
 		cdo.errMin = "tractErrorMin";
 		cdo.errMax = "tractErrorMax";
 		cdo.est = "tractEstimate";
 		cdo.err = "tractError";
-	} else {
+	} else if (status == "region"){
 		cdo.errMin = "regionErrorMin";
 		cdo.errMax = "regionErrorMax";
 		cdo.est = "regionEstimate";
@@ -103,16 +141,61 @@ function return_cdo(status){
 	return cdo;
 }
 
+/**
+ *	Select the current column
+ */
+function select_col(node,state){
+	console.log(d3.select(node));
+
+	if (state == "on"){
+		console.log("state = on");
+		//d3.select(node).style("bgColor",".1");
+	} else {
+		console.log("state = off");
+		//d3.select(node).style("background-color","#000000");	
+	}
+
+}
 
 
 
+// svg properties
+var margin = { top: 0, right: 0, bottom: 0, left: 0 },
+	width = 300 - margin.left - margin.right,
+    height = 20 - margin.top - margin.bottom,
+    barW = 1.5, barHV = 8;
 
-// WORKING WITH TABLE
+// create table
+var table = d3.select('#chart').append('table').attr('class','tableText');
+var thead = table.append('thead');
+var	tbody = table.append('tbody');
+
+// select header row
+var theadtr = thead.append('tr');
+
+// select th
+theadtr.selectAll('th')
+	.data(['Tracts','Regions','Estimate','Error']).enter()
+	.append('th')
+	.text(function (d) { return d; });
+
+// select last th, add svg
+theadtr.append('th').attr('class','svgHeader')
+	.append("svg").attr("height",20);
 
 
-function tabulate(data,status,cols,col_names) {
+/**
+ * 	Build HTML table
+ */
+function tabulate(data,status) {
+
+	console.log("tabulate()",data,status);
+
+	data = fixdata(data);
 
 	var cdo = return_cdo(status); // current data object
+
+	//['TID','RID',cdo.est,cdo.err]
 
 	// Y-SCALE: based on number of data
 	var yScale = d3.scaleLinear()
@@ -123,69 +206,130 @@ function tabulate(data,status,cols,col_names) {
 	var xMin = d3.min(data, function(d) { return parseFloat(d["tractErrorMin"]); });
 	var xMax = d3.max(data, function(d) { return parseFloat(d["tractErrorMax"]); });
 	var xExtent = [xMin,xMax];
+	//console.log(xExtent);
 	var xScale = d3.scaleLinear()
 		.domain(xExtent).nice()
 		.range([margin.left,width-margin.right]);
 
 
 
-	d3.selectAll("#chart2 table").remove(); // remove previous
-	var table = d3.select('#chart2').append('table').attr('class','tableText');
-	var thead = table.append('thead');
-	var	tbody = table.append('tbody');
 
-	// append the header row
-	thead.append('tr')
-		.selectAll('th')
-		.data(col_names).enter()
-		.append('th')
-		.text(function (col_names) { return col_names; });
 
-	// create a row for each object in the data
+	// set the update selection:
 	var rows = tbody.selectAll('tr')
-		.data(data)
-		.enter()
-		.append('tr');
+    	.data(data);
+
+	// set the enter selection:
+	var rowsEnter = rows.enter()
+	    .append('tr');
+
+	// append text cells
+	rowsEnter.append('td')
+	    .attr("class", "tid")
+	    .text(function(d) { return d.TID; });
+	rowsEnter.append('td')
+	    .attr("class", "rid")
+	    .text(function(d) { return d.RID; });
+	rowsEnter.append('td')
+	    .attr("class", "est")
+	    .text(function(d) { return d[cdo.est]; });
+	rowsEnter.append('td')
+	    .attr("class", "err")
+	    .text(function(d) { return d[cdo.err];; });
+
+	// append svg cell
+	var svg = rowsEnter.append('td')
+		.attr('class','svgCell')
+	    .append('svg')
+		    .attr("width", width)
+		    .attr("height", height);
+ 	
+ 	// append horizontal bar to svg
+	svg.append('rect').attr("class", "svgBar svgBarHorz");
+	svg.append('rect').attr("class", "svgBar svgBarVert1");
+	svg.append('rect').attr("class", "svgBar svgBarVert2");
+
+	// append triangle to svg
+	var tri = d3.symbol()
+            .type(d3.symbolTriangle)
+            .size(15);
+	svg.append('path');
+	svg.selectAll('path')		
+			.attr('d',tri)
+		    .attr("class", "svgTri")
+			.attr('fill', "black");
 
 
-	rows.append('td')
-		.attr('class', 'tid')
-		.html(function(d) { console.log(d); return d.TID; });	
-	rows.append('td')
-		.attr('class', 'rid')
-		.html(function(d) { return d.RID; });	
-	rows.append('td')
-		.attr('class', 'est')
-		.html(function(d) { return d[cols[2]]; });	
-	rows.append('td')
-		.attr('class', 'err')
-		.html(function(d) { return d[cols[3]]; });	
+	// transitions über alles!
+	var t = d3.transition().duration(600);
+
+	// select all columns by class, rebind the data
+	d3.selectAll(".tid").data(data).text(function(d) { return d.TID; });
+	d3.selectAll(".rid").data(data).text(function(d) { return d.RID; });
+	d3.selectAll(".est").data(data).text(function(d) { return d[cdo.est]; });
+	d3.selectAll(".err").data(data).text(function(d) { return d[cdo.err]; });
+
+	// select svgs by class, rebind data, and set transitions
+	d3.selectAll(".svgBarHorz")
+		.data(data).transition(t)
+			.attr("x", function(d,i){ return xScale( d[cdo.errMin] )}) 
+			.attr("y", height/2 ) 
+			.attr("width", function(d,i){ return xScale( d[cdo.errMax] ) - xScale( d[cdo.errMin] ) }) 
+			.attr("height", barW);
+	d3.selectAll(".svgBarVert1")
+		.data(data).transition(t)
+			.attr("x", function(d,i){ return xScale( d[cdo.errMin] )}) 
+			.attr("y", 7 ) 
+			.attr("width", barW) 
+			.attr("height", barHV);	
+	d3.selectAll(".svgBarVert2")
+		.data(data).transition(t)
+			.attr("x", function(d,i){ return xScale( d[cdo.errMax] )}) 
+			.attr("y", 7 ) 
+			.attr("width", barW) 
+			.attr("height", barHV);		
+	d3.selectAll(".svgTri")
+		.data(data).transition(t)
+			.attr('transform',function(d,i){ 
+				return "translate("+ xScale( d[cdo.est] ) +","+ barHV*2 +") "; 
+			});
 
 
-	var svgrow = rows.append("td")
-		.append("svg")
-		.attr("width",30)
-		.attr("height",20);
+	d3.selectAll(".tid")
+	    .on("mouseover", selectTID);
+	d3.selectAll(".rid")
+	    .on("mouseover", selectRID);
 
 
-	
+		
+
+	function selectTID(d, i){
+		d3.selectAll("td.tid").classed("highlight", true);
+		d3.selectAll("td.rid").classed("highlight", false);
+		//load_data(this.id.substr(this.id.length - 1),"tract",tabulate)
+	}
+	function selectRID(d, i){
+		d3.selectAll("td.tid").classed("highlight", false);
+		d3.selectAll("td.rid").classed("highlight", true);
+	}
 
 
+	// finally, the exit selection:
+	rows.exit().remove(); 
 
+/*
 
-	svgrow.append("rect")
-		.attr("x", function(d,i){ return xScale( d[cdo.errMin] )}) 
-		.attr("y", 0 ) 
-		.attr("width", function(d,i){ return xScale( d[cdo.errMax] ) }) 
-		.attr("height", 2) 
-		.style('opacity',.9)
-		.style("fill","#990000");
 
 		
 		
 		
-		
 
+
+
+
+*/
+
+/*
 
 	svgrow.append("text")
 		.attr("x",15)
@@ -195,7 +339,7 @@ function tabulate(data,status,cols,col_names) {
 		.style("stroke","white")
 		.style("alignment-baseline","central");
 
-
+*/
 
 
 /*
@@ -231,7 +375,11 @@ function tabulate(data,status,cols,col_names) {
 
 
 
-	return table;
+	//return table;
+
+
+
+	create_scatterplot_axes(data,yScale,xScale,cdo.err,cdo.est);
 }
 
 
@@ -241,8 +389,12 @@ function tabulate(data,status,cols,col_names) {
 
 
 
-
-
+/*
+// scatterplot properties
+var margin = { top: 40, right: 25, bottom: 20, left: 175 },
+	width = 600 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom,
+    boxW = 1, boxH = 2;
 
 // create SVG
 var svg = d3.select("#chart")
@@ -308,7 +460,7 @@ function select_field(node,state){
 
 
 
-}
+//}
 
 
 
@@ -439,26 +591,7 @@ function update_table(data,status,yScale,xScale,err,est){
 
 
 
-function dec_conv(num){
 
-	var decimal = 1000;
-	
-	if (num > 1000) {
-		var decimal = 1;
-	} else if (num > 100){
-		var decimal = 10;
-	} else if (num > 10){
-		var decimal = 10;
-	} else if (num > 1){
-		var decimal = 1000;
-	} else if (num > .1){
-		var decimal = 1000;
-	} else if (num > .01){
-		var decimal = 1000;
-	}
-	num = Math.round(num * decimal) / decimal;
-	return num;
-}
 
 /**
  *	D3 SCATTERPLOT
@@ -470,31 +603,8 @@ function update_data(data,status){
 
 
 	// data fixing
-	data.forEach(function(row,i) {
-		//console.log(row);
-
-		// store names in row so easier to reference
-		data[i].tractError = parseFloat(row[sources[source].tractError]);
-		data[i].tractEstimate = parseFloat(row[sources[source].tractEstimate]);
-		data[i].regionError = parseFloat(row[sources[source].regionError]);
-		data[i].regionEstimate = parseFloat(row[sources[source].regionEstimate]);
-
-		// create TRACT scale (a min / max for each TRACT)
-		// this will be the scale for the axis as well so the change will be obvious
-		data[i].tractErrorMin = data[i].tractEstimate - data[i].tractError;
-		data[i].tractErrorMax = data[i].tractEstimate + data[i].tractError;
-
-		// create REGION scale (a min / max for each REGION)
-		data[i].regionErrorMin = data[i].regionEstimate - data[i].regionError;
-		data[i].regionErrorMax = data[i].regionEstimate + data[i].regionError;
-
-		// clean numbers
-		data[i].tractError = dec_conv(data[i].tractError);
-		data[i].regionError = dec_conv(data[i].regionError);
-		data[i].tractEstimate = dec_conv(data[i].tractEstimate);
-		data[i].regionEstimate = dec_conv(data[i].regionEstimate);
-
-	});
+	data = fixdata(data);
+	
 	//console.log(data[i])
 
 	// Y-SCALE: based on number of data
@@ -515,11 +625,11 @@ function update_data(data,status){
 	var cdo = return_cdo(status); // current data object
 
 
-	update_table(data,status,yScale,xScale,cdo.err,cdo.est);
+	//update_table(data,status,yScale,xScale,cdo.err,cdo.est);
 	
-	tabulate(data,status,['TID','RID',cdo.est,cdo.err],['Tracts','Regions','Estimate','Error']);
+	//tabulate(data,status,['TID','RID',cdo.est,cdo.err]);
 
-
+/*
 
 	// MOE vertical lines
 	g.selectAll("line.moeV1")
@@ -627,7 +737,7 @@ function update_data(data,status){
 			tooltip.transition().duration(500).style("opacity", 0); 
 		});
 */
-
+/*
 	// TRIANGLES
 	var tri = d3.symbol()
             .type(d3.symbolTriangle)
@@ -673,8 +783,9 @@ function update_data(data,status){
 
 
 	create_scatterplot_axes(data,yScale,xScale,cdo.err,cdo.est);
+	*/
 }
-load_data(5,"tract",update_data);
+load_data(1,"tract",tabulate);
 
 
 
@@ -702,9 +813,9 @@ function create_scatterplot_axes(data,yScale,xScale,err,est){
 			.tickPadding(10)
 	;
 	// add X axis properties
-	d3.select("svg").append("g")	
+	d3.select(".svgHeader svg").append("g")	
 		.attr("class", "x axis tableText")
-		.attr("transform", "translate(" + 0 + ","+ (margin.top-8) +")")
+		.attr("transform", "translate(" + 0 + ","+ (25) +")")
 	;
 	// update axis	
 	d3.select(".x.axis").transition().duration(500).call(xAxis); 
