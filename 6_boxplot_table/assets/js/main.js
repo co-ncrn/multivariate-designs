@@ -222,7 +222,7 @@ function tabulate(data,status) {
 	// set the enter selection:
 	var rowsEnter = rows.enter()
 	    .append('tr');
-
+console.log("source",source)
 	// append text cells
 	rowsEnter.append('td')
 	    .attr("class", "tid")
@@ -264,8 +264,8 @@ function tabulate(data,status) {
 	var t = d3.transition().duration(600);
 
 	// select all columns by class, rebind the data
-	d3.selectAll(".tid").data(data).text(function(d) { return d.TID; });
-	d3.selectAll(".rid").data(data).text(function(d) { return d.RID; });
+	d3.selectAll(".tid").data(data).attr("source",source).text(function(d) { return d.TID; });
+	d3.selectAll(".rid").data(data).attr("source",source).text(function(d) { return d.RID; });
 	d3.selectAll(".est").data(data).text(function(d) { return d[cdo.est]; });
 	d3.selectAll(".err").data(data).text(function(d) { return d[cdo.err]; });
 
@@ -306,11 +306,14 @@ function tabulate(data,status) {
 	function selectTID(d, i){
 		d3.selectAll("td.tid").classed("highlight", true);
 		d3.selectAll("td.rid").classed("highlight", false);
-		//load_data(this.id.substr(this.id.length - 1),"tract",tabulate)
+		var s = d3.select(this).attr("source");
+		load_data(s,"tract",tabulate);
 	}
 	function selectRID(d, i){
 		d3.selectAll("td.tid").classed("highlight", false);
 		d3.selectAll("td.rid").classed("highlight", true);
+		var s = d3.select(this).attr("source");
+		load_data(s,"region",tabulate);
 	}
 
 
