@@ -43,7 +43,7 @@ function load_data(_source,status,callback){
 	d3.csv("../data/"+ sources[source]["file"], function(data){
 		//console.log(data);
 		data = remove_rows(data,"inf"); 		// remove rows with "inf" (infinity)
-		//limit = Math.ceil(Math.random()*10)+10; 	// limit is randomized to mimic map interaction
+		limit = Math.ceil(Math.random()*10)+10; 	// limit is randomized to mimic map interaction
 		data = data.slice(0,limit);				// confine to limit
 		display_table(data,"table",limit);		// display table
 		//console.log(data);
@@ -56,6 +56,8 @@ function fixdata(data){
 	// data fixing
 	data.forEach(function(row,i) {
 		//console.log(row);
+
+		data[i].TID = data[i].TID.replace("g","");
 
 		// store names in row so easier to reference
 		data[i].tractError = parseFloat(row[sources[source].tractError]);
@@ -222,7 +224,7 @@ function tabulate(data,status) {
 	// set the enter selection:
 	var rowsEnter = rows.enter()
 	    .append('tr');
-console.log("source",source)
+
 	// append text cells
 	rowsEnter.append('td')
 	    .attr("class", "tid")
@@ -264,10 +266,19 @@ console.log("source",source)
 	var t = d3.transition().duration(600);
 
 	// select all columns by class, rebind the data
-	d3.selectAll(".tid").data(data).attr("source",source).text(function(d) { return d.TID; });
-	d3.selectAll(".rid").data(data).attr("source",source).text(function(d) { return d.RID; });
-	d3.selectAll(".est").data(data).text(function(d) { return d[cdo.est]; });
-	d3.selectAll(".err").data(data).text(function(d) { return d[cdo.err]; });
+	d3.selectAll(".tid").data(data)
+		.classed("button_sliding_bg_left",true)
+		.attr("source",source)
+		.attr("row",function(d,i) { return i; })
+		.text(function(d) { return d.TID; });
+	d3.selectAll(".rid").data(data)
+		.classed("button_sliding_bg_right",true)
+		.attr("source",source)
+		.attr("row",function(d,i) { return i; })
+		.text(function(d) { return d.RID; });
+	d3.selectAll(".est").data(data).attr("row",function(d,i) { return i; }).text(function(d) { return d[cdo.est]; });
+	d3.selectAll(".err").data(data).attr("row",function(d,i) { return i; }).text(function(d) { return d[cdo.err]; });
+	d3.selectAll(".svgCell").data(data).attr("row",function(d,i) { return i; })
 
 	// select svgs by class, rebind data, and set transitions
 	d3.selectAll(".svgBarHorz")
@@ -302,14 +313,17 @@ console.log("source",source)
 
 
 		
+	function selectRow(r){
+		//d3.selectAll("td.tid").classed("highlight", true);
+	}
 
-	function selectTID(d, i){
-		d3.selectAll("td.tid").classed("highlight", true);
-		d3.selectAll("td.rid").classed("highlight", false);
+	function selectTID(d,i){
+		d3.selectAll(".tid").classed("highlight", true);
+		d3.selectAll(".rid").classed("highlight", false);
 		var s = d3.select(this).attr("source");
 		load_data(s,"tract",tabulate);
 	}
-	function selectRID(d, i){
+	function selectRID(d,i){
 		d3.selectAll("td.tid").classed("highlight", false);
 		d3.selectAll("td.rid").classed("highlight", true);
 		var s = d3.select(this).attr("source");
@@ -796,6 +810,7 @@ load_data(1,"tract",tabulate);
 
 /* 
  *	Create axes and labels
+ *	@param {Array} data - the array of objects
  *	@param {Function} yScale - returns a scale
  *	@param {Function} xScale - returns a scale
  *	@param {Float} err - "tractError" or "regionError" from above

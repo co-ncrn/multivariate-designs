@@ -10,7 +10,7 @@
 #chart table { border-collapse: collapse; font: 12px sans-serif; width: 500px; }
 #chart th { font-weight: normal; text-align: center; padding: 6px; min-width: 40px; }
 #chart th svg { height: 20; }
-#chart tbody td { padding: 3px 5px; text-align: center; border: 1px solid #ccc; }
+#chart tbody td { padding: 3px 5px; text-align: center; }
 #chart tbody td.svgCell { text-align: left; margin:0; padding:0; }
 #chart tbody td.svgCell svg {  }
 .svgBar { fill: red; }
@@ -48,5 +48,26 @@ td.highlight {
 
 
 
+
+.button_sliding_bg_left, .button_sliding_bg_right {
+    background: #fff;
+    padding: 15px 10px;
+    margin: 0px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 0 #a8d3dd;
+	-webkit-transition: all ease 0.8s;
+	-moz-transition: all ease 0.8s;
+	transition: all ease 0.9s;
+}
+ /*
+.button_sliding_bg_left:hover {
+   box-shadow: inset -200px 0 0 0 #a8d3dd;
+}
+
+.button_sliding_bg_right:hover {
+    box-shadow: inset 200px 0 0 0 #a8d3dd;
+}
+*/
 
 
