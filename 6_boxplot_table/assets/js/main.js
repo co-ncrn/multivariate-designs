@@ -5,7 +5,7 @@
  */
 
 var source = 0,	// current data source
-	limit = 10, // data limit
+	limit = 20, // data limit
 	status = "tract"; // current regselector status
 
 // data sources
@@ -43,7 +43,7 @@ function load_data(_source,status,callback){
 	d3.csv("../data/"+ sources[source]["file"], function(data){
 		//console.log(data);
 		data = remove_rows(data,"inf"); 		// remove rows with "inf" (infinity)
-		limit = Math.ceil(Math.random()*10)+10; 	// limit is randomized to mimic map interaction
+		//limit = Math.ceil(Math.random()*10)+10; 	// limit is randomized to mimic map interaction
 		data = data.slice(0,limit);				// confine to limit
 		display_table(data,"table",limit);		// display table
 		//console.log(data);
@@ -827,7 +827,7 @@ function create_scatterplot_axes(data,yScale,xScale,err,est){
 		.scale(xScale)
 			.ticks(ticks)		
 			.tickSizeInner(-height)
-			.tickSizeOuter(0)
+			.tickSizeOuter(1000)
 			.tickPadding(10)
 	;
 	// add X axis properties
@@ -837,6 +837,53 @@ function create_scatterplot_axes(data,yScale,xScale,err,est){
 	;
 	// update axis	
 	d3.select(".x.axis").transition().duration(500).call(xAxis); 
+
+
+
+	var xAxisTicks = d3.axisTop()
+		.scale(xScale)
+			.ticks(ticks)		
+			.tickSizeInner(-height)
+			.tickSizeOuter(1000)
+			.tickPadding(10)
+			.tickFormat(function (d) { return ''; });
+	;
+//xAxisTicks.selectAll("text").remove();
+
+	d3.selectAll(".svgCell svg")	
+		.attr("class", "x3 axis3 ")
+		.attr("transform", "translate(" + 0 + ","+ (25) +")")
+	;
+	d3.selectAll(".x3.axis3").transition().duration(500).call(xAxisTicks); 
+
+
+
+
+/*
+
+
+d3.selectAll(".tick line")
+    .each(function (d, i) {
+        console.log(this);
+    });
+
+
+	var lines = d3.selectAll(".svgHeader svg line");
+	lines.attr("y1",-10);
+	lines.attr("y2",100);
+	console.log(lines);
+	///console.log(lines[1].attr("x1")); 
+
+	d3.selectAll(".svgCell svg")
+		.data(lines)
+		.selectAll("line")
+		.append("line")
+		.attr("x1",function(d,i){ console.log(lines[i].x1); lines[i].x1 })
+		.attr("y1",function(d,i){ lines[i].y1 })
+		.attr("x2",function(d,i){ lines[i].x2 })
+		.attr("y2",function(d,i){ lines[i].y2 })
+
+	*/
 
 }
 
