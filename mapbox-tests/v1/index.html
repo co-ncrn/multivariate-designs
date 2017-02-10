@@ -37,9 +37,9 @@ var map = new mapboxgl.Map({
     
     center: [-80.84312, 35.227085],
     minZoom: 5,
+    maxZoom: 18,
     zoom: 8
 });
-map.setMinZoom(4).setMaxZoom(18);
 
 var rect; // current viewport
 var oldrect; // last viewport
@@ -61,8 +61,10 @@ map.on('load', function() {
         // geoJSON files from Regionalization project
       //  {name: '16740_Charlotte', source: 'owenmundy.50r5jx8d', layer: '16740_tract-2h5ll5', property: 'avgroomsE'}, // 16740 Charlotte
 
-        // made this one with: $ tippecanoe -o 16740_tract_tip.mbtiles -Z 6 -z 15 16740_tract.geojson
+        // made these with: $ tippecanoe -o 16740_tract_tip.mbtiles -Z 6 -z 15 16740_tract.geojson
         {name: '16740_Charlotte', source: 'owenmundy.7k3mbfoq', layer: '16740_tractgeojson', property: 'avgroomsE'}, // 16740 Charlotte // tip
+        {name: '11700_Asheville', source: 'owenmundy.925jicl0', layer: '11700_tractgeojson', property: 'avgroomsE'}, // 16740 Charlotte // tip
+
     ];
 
     // Add the source (polygons uploaded as vector tiles) to query
