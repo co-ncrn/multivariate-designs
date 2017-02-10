@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<title></title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script src='https://api.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.css' rel='stylesheet' />
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+.boxdraw { background: rgba(56, 135, 190, 0.1); border: 2px solid #3887be; position: absolute; top: 0; left: 0; width: 0; height: 0; }
+</style>
+</head>
+<body>
+
+<div id='map'></div>
+
+<script>
+
+/** Combines the following Mapbox GL examples...
+Highlight features within a bounding box using queryRenderedFeatures (shift+click)
+- https://www.mapbox.com/mapbox-gl-js/example/using-box-queryrenderedfeatures/
+Filter features within map view
+- https://www.mapbox.com/mapbox-gl-js/example/filter-features-within-map-view/
+Use setPaintProperty to change a layer's fill color
+- https://www.mapbox.com/mapbox-gl-js/example/color-switcher/
+*/
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbm11bmR5IiwiYSI6ImNpd3o4M3dvejAxMHkyeW1neTQxMzlxamkifQ.mRigBfiIBYYqOMAftwkvbQ';
+var map = new mapboxgl.Map({
+    container: 'map',
+    //style: 'mapbox://styles/owenmundy/cixja89de000o2soccfd3ugfk',
+    //style: 'mapbox://styles/mapbox/dark-v9',
+    style: 'mapbox://styles/owenmundy/ciyzqayz9004j2ro084g0mog4', // light-for-census
+    
+    center: [-80.84312, 35.227085],
+    minZoom: 5,
+    zoom: 8
+});
+map.setMinZoom(4).setMaxZoom(18);
+
+var rect; // current viewport
+var oldrect; // last viewport
+var bbox = [{ "x": 200, "y": 200 }, { "x": 600, "y": 400 }]; // bounding box for filtering
+var features; // current active features
+
+map.on('load', function() {
+    var canvas = map.getCanvasContainer();
+
+    // examine a source
+    // http://api.mapbox.com/v4/owenmundy.agxm8exa.json?access_token=pk.eyJ1IjoibHl6aWRpYW1vbmQiLCJhIjoiRkh4OW9layJ9.P2o48WlCqjhGmqoFJl3C_A
+    // http://api.mapbox.com/v4/mapbox.us_census_states_2015.json?access_token=pk.eyJ1IjoibHl6aWRpYW1vbmQiLCJhIjoiRkh4OW9layJ9.P2o48WlCqjhGmqoFJl3C_A
+    var sourcesAndLayers = [
+        // data directly from the census sight
+        //{name: 'North_Carolina', source: 'owenmundy.agxm8exa', layer: 'cb_2015_37_tract_500k-4m8xsr', property: 'AWATER'},
+        //{name: 'South_Carolina', source: 'owenmundy.04j2106k', layer: 'cb_2015_45_tract_500k-79or47', property: 'AWATER'},
+        //{name: 'Georgia', source: 'owenmundy.51ielesj', layer: 'cb_2015_13_tract_500k-9yc76y', property: 'AWATER'},
+        //{name: 'Alabama', source: 'owenmundy.68bw9wqh', layer: 'cb_2015_01_tract_500k-dmwqt1', property: 'AWATER'},
+        // geoJSON files from Regionalization project
+      //  {name: '16740_Charlotte', source: 'owenmundy.50r5jx8d', layer: '16740_tract-2h5ll5', property: 'avgroomsE'}, // 16740 Charlotte
+
+        // made this one with: $ tippecanoe -o 16740_tract_tip.mbtiles -Z 6 -z 15 16740_tract.geojson
+        {name: '16740_Charlotte', source: 'owenmundy.7k3mbfoq', layer: '16740_tractgeojson', property: 'avgroomsE'}, // 16740 Charlotte // tip
+    ];
+
+    // Add the source (polygons uploaded as vector tiles) to query
+    function addSources(source){
+
+        map.addSource(source.name, {
+            "type": "vector",
+            //"url": "mapbox://mapbox.us_census_states_2015" // Census State
+            //"url": "mapbox://owenmundy.agxm8exa" // North Carolina
+            "url": "mapbox://"+source.source
+        });
+    }
+
+    for (var i in sourcesAndLayers){
+        addSources(sourcesAndLayers[i]);
+    }
+
+
+    var stops = [
+        [0,'#cdf1f5'],
+        [5000,'#a8d3dd'],
+        [10000,'#81b2c1'],
+        [20000,'#58919d'],
+        [40000,'#53828e'],
+        [80000,'#58919d'],
+        [100000,'#81b2c1'],
+        [1000000,'#a8d3dd']
+    ];
+    var stops_avgroomsE = [
+        [2,'#cdf1f5'],
+        [3,'#a8d3dd'],
+        [3,'#81b2c1'],
+        [4,'#58919d'],
+        [5,'#53828e'],
+        [6,'#58919d'],
+        [7,'#81b2c1'],
+        [8,'#a8d3dd']
+    ];
+    stops = stops_avgroomsE;
+
+    function addLayers(source,property){
+
+        map.addLayer({
+            "id": source.name,
+            "type": "fill",
+            "source": source.name,
+            "source-layer": source.layer, // NC
+            "paint": {
+                "fill-outline-color": "rgba(255,255,255,0.3)",
+                //"fill-color": "rgba(255,0,0,0.1)"
+                'fill-color': {
+                    property: source.property,
+                    stops: stops, //[
+                        //[0, 'white'], [1000, 'red'], [10000, 'green'], [100000, 'blue'], [1000000, 'yellow']
+                        //[0, 'white'], [5, 'red'], [10, 'green'], [15, 'blue'], [20, 'yellow']
+                    //]
+                },
+                'fill-opacity': 0.85
+            }
+        }, 'water-label'); // Place polygon under these labels.
+    }
+
+
+    for (var i in sourcesAndLayers){
+        addLayers(sourcesAndLayers[i]);
+    }
+
+
+
+/*
+    map.addLayer({
+        "id": "counties-highlighted0",
+        "type": "fill",
+        "source": "counties",
+        "source-layer": "original",
+        "paint": {
+            "fill-outline-color": "#484896",
+            "fill-color": "#6e599f",
+            "fill-opacity": 0.75
+        },
+            "filter": ["in", "FIPS", ""]
+    }, 'place-city-sm'); // Place polygon under these labels.
+
+    map.addLayer({
+        "id": "counties-highlighted1",
+        'source': 'counties',
+        "source-layer": "original",
+        'type': 'fill',
+        'paint': {
+            'fill-color': {
+                property: 'population',
+                stops: [
+                    [0, 'white'],
+                    [1000, 'red'],
+                    [10000, 'green'],
+                    [100000, 'blue'],
+                    [1000000, 'yellow']
+                ]
+            },
+            'fill-opacity': 0.75
+        },
+        "filter": ["in", "FIPS", ""]
+    }, 'place-city-sm'); // Place polygon under these labels.
+
+*/
+
+/*
+    // Return the xy coordinates of the mouse position
+    function mousePos(e) {
+        rect = canvas.getBoundingClientRect();
+        return new mapboxgl.Point(
+                e.clientX - rect.left - canvas.clientLeft,
+                e.clientY - rect.top - canvas.clientTop
+            );
+    }
+
+    function onMouseUp(e) {
+        // Capture xy coordinates
+        //var xy = [start, mousePos(e)];
+        //console.log("xy: " + JSON.stringify(xy));
+        // finish([start, mousePos(e)]);
+    }
+*/
+
+  
+
+    function updateMap() {
+        /**/
+        var features = map.queryRenderedFeatures(bbox, {
+            //layers: ['counties']
+        });
+        
+        console.log("\n\n################################");
+        console.log("bbox: " + JSON.stringify(bbox));
+        //console.log("features: " + JSON.stringify(features));
+        console.log(features);
+        /*
+        if (features && features.length >= 1000) {
+        return window.alert('Select a smaller number of features');
+        }
+        */
+        // Run through the selected features and set a filter
+        // to match features with unique FIPS codes to activate
+        // the `counties-highlighted` layer.
+        /*
+        var filter = features.reduce(function(memo, feature) {
+        memo.push(feature.properties.FIPS);
+        return memo;
+        }, ['in', 'FIPS']);
+        map.setFilter("counties-highlighted", filter);
+        */
+        /*      
+        for(var i=0; i<features.length; i++){
+        // map.setFilter("counties-highlighted", ["==", "population", 		
+        //     features[5].properties.population]);
+
+        console.log(features[i]);
+        }	
+
+        */
+    }
+
+    map.on('mouseup', function(e) {
+
+
+        var rect = map.getBounds();
+        if (oldrect != rect) {
+            console.log("oldrect: " + JSON.stringify(oldrect));
+            console.log("rect: " + JSON.stringify(rect));
+            //updateMap();
+        }
+        oldrect = rect;
+
+        console.log("zoom: "+ map.getZoom());
+    });
+    //updateMap();
+
+    var colors = [
+        '#cdf1f5',
+        '#a8d3dd',
+        '#81b2c1',
+        '#58919d',
+        '#53828e',
+        '#58919d',
+        '#81b2c1',
+        '#a8d3dd'
+    ];
+
+    //var myVar = setInterval(myTimer, 100);
+    var currentColor = 0;
+
+    function myTimer() {
+        if (map && map.getLayer("counties-highlighted")) {
+            //var r = Math.ceil(Math.random() * colors.length)
+            var r = currentColor++;
+
+            // set the fill of all filtered
+            //map.setPaintProperty("counties-highlighted", 'fill-color', colors[r]);
+
+            // better?: set the fill using a filter
+            var features = map.queryRenderedFeatures(bbox, {
+            layers: ['counties']
+            });
+            //console.log("\nfeatures (myTimer): " + JSON.stringify(features));
+            // THIS DOESN"T WORK :-(
+            for(var i=0; i<features.length; i++){
+                map.setFilter("counties-highlighted", ["==", "population", 		
+                features[i].properties.population]);
+            }	
+            // animate fill color
+            //map.setPaintProperty("counties-highlighted", 'fill-color', colors[r]);
+
+            // reset color arr index
+            if (currentColor >= colors.length) currentColor = 0;
+        }
+    }
+
+
+
+});
+
+</script>
