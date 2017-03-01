@@ -13,7 +13,10 @@
     "memwatch-next": "^0.3.0",
     "mysql": "^2.13.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-nodemon": "^2.2.1"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
