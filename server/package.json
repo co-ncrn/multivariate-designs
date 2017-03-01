@@ -1,0 +1,22 @@
+{
+  "name": "regionalization_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "forever": "^0.15.3",
+    "good": "^6.6.3",
+    "good-console": "^5.3.2",
+    "gulp": "^3.9.1",
+    "gulp-nodemon": "^2.2.1",
+    "hapi": "^13.5.3",
+    "memwatch-next": "^0.3.0",
+    "mysql": "^2.13.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
