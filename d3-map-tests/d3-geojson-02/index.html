@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.states {
+  fill: #ccc;
+  stroke: #fff;
+}
+</style>
+<body>
+<script src="https://d3js.org/d3-array.v1.min.js"></script>
+<script src="https://d3js.org/d3-geo.v1.min.js"></script>
+
+<script src="https://d3js.org/d3-selection.v1.min.js"></script>
+
+<script src="https://d3js.org/d3-collection.v1.min.js"></script>
+<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+<script src="https://d3js.org/d3-request.v1.min.js"></script>
+
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+var width = 960,
+    height = 500;
+
+//var projection = d3.geoAlbersUsa();
+
+var projection = d3.geoAlbersUsa()
+    .scale(1800)
+    .translate([width / 2, height / 2]);    
+
+var path = d3.geoPath()
+    .projection(projection);
+
+
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+d3.json("../data/16740_tracts_qgis_export.geojson", function(error, us) {
+    if (error) throw error;
+    console.log(us.features)
+
+    svg.append("path")
+        .datum({type: "FeatureCollection", features: us.features})
+        .attr("d", path);
+
+
+    svg.selectAll("path")
+        .style("fill", "red")
+        .style("stroke-width", "1")
+        .style("stroke", "black");    
+
+
+  
+});
+
+
+
+
+</script>

@@ -1,0 +1,517 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<title></title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script src="../../assets/js/jquery.min.js"></script>
+<script src='https://api.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v0.32.1/mapbox-gl.css' rel='stylesheet' />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+<style>
+
+
+body { margin: 0; padding: 0; font: 12px/15px 'Open Sans', sans-serif; }
+
+#map { position: absolute; top: 0; bottom: 0; width: 100%;  }
+
+.map-overlay { position: absolute; right: 0; top: 0; width: 30%; z-index: 2; padding: 20px; }
+.map-overlay .map-overlay-inner { 
+    background: rgba(255,255,255,.8); 
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.10);
+    border-radius: 3px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+
+</style>
+</head>
+<body>
+
+<div class="map-overlay">
+    <div class="map-overlay-inner">
+        <h1>Regionalization</h1>
+
+        <h2>Sources</h2>
+        <div id="source-link"></div>
+
+        <h2>Features</h2>
+        <div id="features"></div>
+    </div>
+</div>
+
+<div id="map"></div>
+
+<script>
+
+/** Combines the following Mapbox GL examples...
+
+Highlight features within a bounding box using queryRenderedFeatures (shift+click)
+- https://www.mapbox.com/mapbox-gl-js/example/using-box-queryrenderedfeatures/
+
+Filter features within map view
+- https://www.mapbox.com/mapbox-gl-js/example/filter-features-within-map-view/
+
+Use setPaintProperty to change a layer's fill color
+- https://www.mapbox.com/mapbox-gl-js/example/color-switcher/
+
+
+*/
+
+
+var data = [
+    {"TRACTCE": "0100", "unemployment": 13.17},
+    {"TRACTCE": "0200", "unemployment": 9.5},
+    {"TRACTCE": "0400", "unemployment": 12.15},
+    {"TRACTCE": "0500", "unemployment": 8.99},
+    {"TRACTCE": "0600", "unemployment": 11.83},
+    {"TRACTCE": "06400", "unemployment": 1.83},
+    {"TRACTCE": "0700", "unemployment": 10.83},
+    {"TRACTCE": "0800", "unemployment": 7.52},
+    {"TRACTCE": "0900", "unemployment": 6.44},
+    {"TRACTCE": "1000", "unemployment": 5.17},
+    {"TRACTCE": "1200", "unemployment": 9.67},
+    {"TRACTCE": "1300", "unemployment": 10.64},
+    {"TRACTCE": "1500", "unemployment": 12.38},
+    {"TRACTCE": "1600", "unemployment": 10.13},
+    {"TRACTCE": "1700", "unemployment": 9.58},
+    {"TRACTCE": "1800", "unemployment": 10.63},
+    {"TRACTCE": "1900", "unemployment": 8.09},
+    {"TRACTCE": "2000", "unemployment": 5.93},
+    {"TRACTCE": "2100", "unemployment": 9.86},
+    {"TRACTCE": "2200", "unemployment": 9.81},
+    {"TRACTCE": "2300", "unemployment": 7.82},
+    {"TRACTCE": "2400", "unemployment": 8.35},
+    {"TRACTCE": "2500", "unemployment": 9.1},
+    {"TRACTCE": "2600", "unemployment": 10.69},
+    {"TRACTCE": "2700", "unemployment": 11.53},
+    {"TRACTCE": "2800", "unemployment": 9.29},
+    {"TRACTCE": "2900", "unemployment": 9.94},
+    {"TRACTCE": "3000", "unemployment": 9.29},
+    {"TRACTCE": "3100", "unemployment": 5.45},
+    {"TRACTCE": "3200", "unemployment": 4.21},
+    {"TRACTCE": "3300", "unemployment": 4.27},
+    {"TRACTCE": "3400", "unemployment": 4.09},
+    {"TRACTCE": "3500", "unemployment": 7.83},
+    {"TRACTCE": "3600", "unemployment": 8.01},
+    {"TRACTCE": "3700", "unemployment": 9.34},
+    {"TRACTCE": "3800", "unemployment": 11.23},
+    {"TRACTCE": "3900", "unemployment": 7.08},
+    {"TRACTCE": "4000", "unemployment": 11.22},
+    {"TRACTCE": "4100", "unemployment": 6.2},
+    {"TRACTCE": "4200", "unemployment": 9.11},
+    {"TRACTCE": "4400", "unemployment": 10.42},
+    {"TRACTCE": "4500", "unemployment": 8.89},
+    {"TRACTCE": "4600", "unemployment": 11.03},
+    {"TRACTCE": "4700", "unemployment": 7.35},
+    {"TRACTCE": "4800", "unemployment": 8.92},
+    {"TRACTCE": "4900", "unemployment": 7.65},
+    {"TRACTCE": "5000", "unemployment": 8.01},
+    {"TRACTCE": "5100", "unemployment": 7.62},
+    {"TRACTCE": "5300", "unemployment": 7.77},
+    {"TRACTCE": "5400", "unemployment": 8.49},
+    {"TRACTCE": "5500", "unemployment": 9.42},
+    {"TRACTCE": "5600", "unemployment": 7.59},
+    ,
+    {"TRACTCE": "6100", "unemployment": 9.86},
+    {"TRACTCE": "6200", "unemployment": 9.81},
+    {"TRACTCE": "6300", "unemployment": 7.82},
+    {"TRACTCE": "6400", "unemployment": 8.35},
+    {"TRACTCE": "6500", "unemployment": 9.1},
+    {"TRACTCE": "6600", "unemployment": 10.69},
+    {"TRACTCE": "6700", "unemployment": 11.53},
+    {"TRACTCE": "6800", "unemployment": 9.29},
+    {"TRACTCE": "6900", "unemployment": 9.94},
+    {"TRACTCE": "7000", "unemployment": 9.29},
+    {"TRACTCE": "7100", "unemployment": 5.45},
+    {"TRACTCE": "7200", "unemployment": 4.21},
+    {"TRACTCE": "8300", "unemployment": 4.27},
+    {"TRACTCE": "94000", "unemployment": 4.09}
+];
+var dataMatchProp = "TRACTCE";
+var dataStyleProp = "unemployment";
+
+
+
+
+var options = {
+    msaMinZoom: 4, msaMaxZoom: 8, tractMinZoom: 8, tractMaxZoom: 18, labelPosition: 'place-city-sm'
+}
+var details = {
+    zoom: 8, bounds: [], center: [-80.84312, 35.227085], layers: [], tractsVisible: [],
+    //"boundingBox": [{ "x": 200, "y": 200 }, { "x": 600, "y": 400 }] // bounding box for filtering
+};
+  
+var mapStyles = ['mapbox://styles/owenmundy/cixja89de000o2soccfd3ugfk', 
+                 'mapbox://styles/mapbox/dark-v9',
+                 'mapbox://styles/owenmundy/ciyzqayz9004j2ro084g0mog4' // light-for-census
+                ];                    
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoib3dlbm11bmR5IiwiYSI6ImNpd3o4M3dvejAxMHkyeW1neTQxMzlxamkifQ.mRigBfiIBYYqOMAftwkvbQ';
+
+// create map
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: mapStyles[2], 
+    center:     details.center,
+    zoom:       details.zoom,
+    minZoom:    options.msaMinZoom,
+    maxZoom:    options.tractMaxZoom,
+    hash:       true
+});
+
+
+var features; // current active features
+
+map.on('load', function() {
+    var canvas = map.getCanvasContainer();
+
+    // to examine a source
+    // http://api.mapbox.com/v4/owenmundy.agxm8exa.json?access_token=pk.eyJ1IjoibHl6aWRpYW1vbmQiLCJhIjoiRkh4OW9layJ9.P2o48WlCqjhGmqoFJl3C_A
+    // http://api.mapbox.com/v4/mapbox.us_census_states_2015.json?access_token=pk.eyJ1IjoibHl6aWRpYW1vbmQiLCJhIjoiRkh4OW9layJ9.P2o48WlCqjhGmqoFJl3C_A
+    var sourcesAndLayers = [
+        //{name: 'North_Carolina', source: 'mapbox.us_census_states_2015', layer: '???', property: '???'}, // Census States example
+        // data directly from the census sight
+        //{name: 'North_Carolina', source: 'owenmundy.agxm8exa', layer: 'cb_2015_37_tract_500k-4m8xsr', property: 'AWATER'}, // North Carolina
+        //{name: 'South_Carolina', source: 'owenmundy.04j2106k', layer: 'cb_2015_45_tract_500k-79or47', property: 'AWATER'},
+        //{name: 'Georgia', source: 'owenmundy.51ielesj', layer: 'cb_2015_13_tract_500k-9yc76y', property: 'AWATER'},
+        //{name: 'Alabama', source: 'owenmundy.68bw9wqh', layer: 'cb_2015_01_tract_500k-dmwqt1', property: 'AWATER'},
+        // geoJSON files from Regionalization project
+      //  {name: '16740_Charlotte', source: 'owenmundy.50r5jx8d', layer: '16740_tract-2h5ll5', property: 'avgroomsE'}, // 16740 Charlotte
+
+
+
+        // made these with: $ tippecanoe -o 16740_tract_tip.mbtiles -Z 6 -z 15 16740_tract.geojson
+        //{name: '16740_Charlotte', source: 'owenmundy.7k3mbfoq', layer: '16740_tractgeojson', property: 'avgroomsE', filter: ["has", "TID"]},
+        {name: '11700_Asheville', source: 'owenmundy.925jicl0', layer: '11700_tractgeojson', property: 'avgroomsE', filter: ["has", "TID"]},
+
+        // made with Mapbox Studio, 736 KB, z8~z12
+        {name: '16740_Charlotte', source: 'owenmundy.13213e70', layer: '16740_trans_tracts', property: 'TRACTCE'},
+        
+
+    ];
+
+
+    var highlightLayers = [
+      //  {name: '16740_Charlotte', source: 'owenmundy.7k3mbfoq', layer: '16740_tractgeojson', layerId: '16740_tractgeojson_highlight', property: 'avgroomsE', filter: ["has", "TID"]}
+        {name: '16740_Charlotte', source: 'owenmundy.13213e70', layer: '16740_trans_tracts', layerId: '16740_trans_tracts_highlight', property: 'TRACTCE', filter: ["has", "TID"]}
+    ];
+
+
+
+    /**
+     *  Add a source (polygons uploaded as vector tiles) to query
+     */
+    function addSource(source){
+
+        // show source link in html
+        $('#source-link').append("<a target='_blank' href='http://api.mapbox.com/v4/"+ source.source +".json?access_token="+ 
+            mapboxgl.accessToken +"'>"+ source.name +" JSON</a><br>");
+
+        map.addSource(source.name, { "type": "vector", "url": "mapbox://"+source.source });
+    }
+
+    for (var i in sourcesAndLayers){
+        addSource(sourcesAndLayers[i]);
+    }
+
+
+    var stops1 = [
+        [0, 'white'], [1000, 'red'], [10000, 'green'], [100000, 'blue'], [1000000, 'yellow']
+        //[0, 'white'], [5, 'red'], [10, 'green'], [15, 'blue'], [20, 'yellow']
+    ]
+
+    var stops2 = [
+        [0,'#cdf1f5'],
+        [5000,'#a8d3dd'],
+        [10000,'#81b2c1'],
+        [20000,'#58919d'],
+        [40000,'#53828e'],
+        [80000,'#58919d'],
+        [100000,'#81b2c1'],
+        [1000000,'#a8d3dd']
+    ];
+    var stops_avgroomsE = [
+        [2,'#cdf1f5'],
+        [3,'#a8d3dd'],
+        [3,'#81b2c1'],
+        [4,'#58919d'],
+        [5,'#53828e'],
+        [6,'#58919d'],
+        [7,'#81b2c1'],
+        [8,'#a8d3dd']
+    ];
+    var stops_tractce = [
+        [30000,'#cdf1f5'],
+        [41003,'#a8d3dd'],
+        [50903,'#81b2c1'],
+        [51003,'#58919d'],
+        [60000,'#53828e'],
+        [61000,'#58919d'],
+        [70000,'#81b2c1'],
+        [71000,'#a8d3dd']
+    ];
+    stops = stops_avgroomsE;
+
+    // First value is the default, used where the is no data
+    var stops = [["0", "rgba(0,0,0,0)"]];
+var maxValue = 13;
+    // Calculate color for each state based on the unemployment rate
+    data.forEach(function(row) {
+        var blue = ((row[dataStyleProp] / maxValue) * 155);
+        var color = "rgba(" + 88 + ", " + 80 + ", " + blue + ", 1)";
+        stops.push([row[dataMatchProp], color]);
+    });
+
+    var tractLayerOptions = {
+        fillOutlineColor: "rgba(255,255,255,0.3)",
+        fillOpacity: 0.65,
+        stops: stops
+    }
+console.log(stops)
+
+    /**
+     *  Add all MSAs
+     */
+    function addMSALayer(){
+        // add source
+        map.addSource('msa-source', { "type": "vector", "url": "mapbox://owenmundy.fcc583c9" });
+
+        // add layer
+        map.addLayer({
+            "id": 'msa_1-layer',
+            "type": "fill",
+            "source": 'msa-source',         // name of the source
+            "source-layer": 'msareap010g',  // a layer from the source
+            "paint": {
+                "fill-outline-color": "rgba(255,255,255,0.3)",
+                'fill-color': "#81b2c1",
+                'fill-opacity': 0.65
+            }
+        }, options.labelPosition); // place polygon under these labels.
+
+        // set zoom range
+        map.setLayerZoomRange('msa_1-layer', options.msaMinZoom, options.msaMaxZoom);
+    }
+    addMSALayer();
+
+
+
+
+
+    /**
+     *  Add layer
+     */
+    function addTractLayer(source,layer,layerID,property,options){
+
+        map.addLayer({
+            "id": layerID,
+            "type": "fill",
+            "source": source,  // name of the source
+            "source-layer": layer, // a layer from the source
+            "paint": {
+                "fill-outline-color": tractLayerOptions.fillOutlineColor,
+                'fill-color': {
+                    property: property, // the property to use
+                    stops: tractLayerOptions.stops, // array of value:color pairs
+                },
+                'fill-opacity': tractLayerOptions.fillOpacity
+            }
+        }, options.labelPosition); // Place polygon under these labels.
+
+        details.layers.push(layer);
+    
+        map.setLayerZoomRange(layer, options.tractMinZoom, options.tractMaxZoom);
+    }
+    // add tract layers
+    for (var i = 0; i < sourcesAndLayers.length; i++){
+        var l = sourcesAndLayers[i];
+        console.log(l);
+        addTractLayer(l.name, l.layer, l.layer, l.property, tractLayerOptions);
+        // addTractLayer("16740_Charlotte","16740_tractgeojson",'avgroomsE',tractLayerOptions);
+        // addTractLayer("11700_Asheville","11700_tractgeojson",'avgroomsE',tractLayerOptions);
+    }
+   
+    // add highlight layers
+    for (var i = 0; i < highlightLayers.length; i++){
+        var l = highlightLayers[i];
+        addTractLayer(l.name, l.layer, l.layerId, l.property, tractLayerOptions);
+    }
+
+
+
+    /**
+     *  Handle activity on the map, update params
+     */
+    function updateMapDetails(event){
+
+        details.bounds = map.getBounds();   // get viewport
+        details.zoom = map.getZoom();       // get current zoom
+
+        // reporting
+        console.log("details",JSON.stringify(details));
+        console.log("event",event);
+
+        updateVisibleFeatures();    // update visible features
+    }
+    map.on('zoomend', function(event) { updateMapDetails(event) });
+    map.on('moveend', function(event) { updateMapDetails(event) });
+    //updateMapDetails('load test');
+
+    /**
+     *  Get all features in viewport
+     */
+    function updateVisibleFeatures(){
+
+        // return list of features
+        features = map.queryRenderedFeatures(/* omit param, defaults to viewport */ {
+            layers: details.layers // only get features in these layers
+        });
+
+        // create HTML to display visible features
+        var featuresStr = "";
+        for(var i=0; i<100; i++){
+            if (features[i]){
+                featuresStr += "<a class='featureHighlight' href='#' id='"+ features[i].properties.TRACTCE +"'>"+ features[i].properties.TRACTCE +"</a><br>";
+            }    
+        }
+        $('#features').html(featuresStr);
+
+        console.log("features.length: ",features.length);
+        console.log(features);
+
+    }
+    /**
+     *  Hover over feature in list
+     */
+    $(document.body).on('mouseenter', '.featureHighlight', function(){
+        console.log(this.id)
+
+        map.setFilter("16740_trans_tracts_highlight", ["==", "TRACTCE", this.id]);
+        map.setPaintProperty("16740_trans_tracts_highlight", 'fill-color', "#990000");
+    })
+    $(document.body).on('mouseleave', '.featureHighlight', function(){
+        console.log(this.id)
+
+        //map.setFilter("16740_Charlotte", ["==", "TID", this.id]);
+        //map.setPaintProperty("16740_Charlotte", 'fill-color', "#990000");
+    })
+
+
+    /*
+
+// FOR MAP INTERACTION
+        // change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = features.length ? 'pointer' : '';
+
+    */
+
+
+// When a click event occurs near a polygon, open a popup at the location of
+// the feature, with description HTML from its properties.
+map.on('click', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ["16740_trans_tracts_highlight"] });
+    if (!features.length) return;
+
+
+    var feature = features[0];
+    //console.log("feature object: ", feature);
+
+
+
+    var popup = new mapboxgl.Popup()
+        .setLngLat(map.unproject(e.point))
+        .setHTML(feature.properties.TRACTCE)
+        .addTo(map);
+});
+  
+
+
+map.on('mousemove', function (e) {
+    var features = map.queryRenderedFeatures(e.point);
+    
+});
+
+
+
+
+/* // MAY BE USEFUL LATER
+
+    // Return the xy coordinates of the mouse position
+    function mousePos(e) {
+        var rect = canvas.getBoundingClientRect();
+        return new mapboxgl.Point(
+                e.clientX - rect.left - canvas.clientLeft,
+                e.clientY - rect.top - canvas.clientTop
+            );
+    }
+
+    function onMouseUp(e) {
+        // Capture xy coordinates
+        //var xy = [start, mousePos(e)];
+        //console.log("xy: " + JSON.stringify(xy));
+        // finish([start, mousePos(e)]);
+    }
+*/
+
+
+
+
+
+
+
+/* // OLD CODE FOR TESTING TRACT FADING IN JSFIDDLE
+
+
+Old code here
+https://jsfiddle.net/ow3n/0pnoohom/
+
+    var colors = [
+        '#cdf1f5',
+        '#a8d3dd',
+        '#81b2c1',
+        '#58919d',
+        '#53828e',
+        '#58919d',
+        '#81b2c1',
+        '#a8d3dd'
+    ];
+
+    //var myVar = setInterval(myTimer, 100);
+    var currentColor = 0;
+
+    function myTimer() {
+        if (map && map.getLayer("counties-highlighted")) {
+            //var r = Math.ceil(Math.random() * colors.length)
+            var r = currentColor++;
+
+            // set the fill of all filtered
+            //map.setPaintProperty("counties-highlighted", 'fill-color', colors[r]);
+
+            // better?: set the fill using a filter
+            var features = map.queryRenderedFeatures(details.boundingBox, {
+            layers: ['counties']
+            });
+            //console.log("\nfeatures (myTimer): " + JSON.stringify(features));
+            // THIS DOESN"T WORK :-(
+            for(var i=0; i<features.length; i++){
+                map.setFilter("counties-highlighted", ["==", "population", 		
+                features[i].properties.population]);
+            }	
+            // animate fill color
+            //map.setPaintProperty("counties-highlighted", 'fill-color', colors[r]);
+
+            // reset color arr index
+            if (currentColor >= colors.length) currentColor = 0;
+        }
+    }
+*/
+
+
+
+
+});
+
+</script>

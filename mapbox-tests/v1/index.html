@@ -16,7 +16,7 @@ body { margin: 0; padding: 0; font: 12px/15px 'Open Sans', sans-serif; }
 
 #map { position: absolute; top: 0; bottom: 0; width: 100%;  }
 
-.map-overlay { position: absolute; right: 0; top: 0; width: 30%; height: 90%; z-index: 2; padding: 20px; }
+.map-overlay { position: absolute; right: 0; top: 0; width: 30%; z-index: 2; padding: 20px; }
 .map-overlay .map-overlay-inner { 
     background: rgba(255,255,255,.8); 
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.10);
@@ -63,12 +63,11 @@ Use setPaintProperty to change a layer's fill color
 
 
 
-
 var options = {
-    msaMinZoom: 4, msaMaxZoom: 8, tractMinZoom: 8, tractMaxZoom: 18
+    msaMinZoom: 4, msaMaxZoom: 8, tractMinZoom: 8, tractMaxZoom: 18, labelPosition: 'place-city-sm'
 }
 var details = {
-    zoom: 8, bounds: [], center: [-80.84312, 35.227085], layers: ['16740_Charlotte','11700_Asheville'], tractsVisible: [],
+    zoom: 8, bounds: [], center: [-80.84312, 35.227085], layers: [], tractsVisible: [],
     //"boundingBox": [{ "x": 200, "y": 200 }, { "x": 600, "y": 400 }] // bounding box for filtering
 };
   
@@ -110,10 +109,9 @@ map.on('load', function() {
       //  {name: '16740_Charlotte', source: 'owenmundy.50r5jx8d', layer: '16740_tract-2h5ll5', property: 'avgroomsE'}, // 16740 Charlotte
 
         // made these with: $ tippecanoe -o 16740_tract_tip.mbtiles -Z 6 -z 15 16740_tract.geojson
-        {name: '16740_Charlotte', source: 'owenmundy.7k3mbfoq', layer: '16740_tractgeojson', property: 'avgroomsE'}, // 16740 Charlotte // tip
-        {name: '11700_Asheville', source: 'owenmundy.925jicl0', layer: '11700_tractgeojson', property: 'avgroomsE'}, // 16740 Charlotte // tip
+        {name: '16740_Charlotte', source: 'owenmundy.7k3mbfoq', layer: '16740_tractgeojson', property: 'avgroomsE', filter: ["has", "TID"]}, // 16740 Charlotte // tip
+        {name: '11700_Asheville', source: 'owenmundy.925jicl0', layer: '11700_tractgeojson', property: 'avgroomsE', filter: ["has", "TID"]} // 16740 Charlotte // tip
 
-        {name: 'msa_1', source: 'owenmundy.fcc583c9', layer: 'msareap010g', property: 'POP'}
 
     ];
 
@@ -168,14 +166,47 @@ map.on('load', function() {
     ];
     stops = stops_avgroomsE;
 
-    function addLayer(source,property){
+
+    /**
+     *  Add all MSAs
+     */
+    function addMSALayer(){
+        // add source
+        map.addSource('msa-source', { "type": "vector", "url": "mapbox://owenmundy.fcc583c9" });
+
+        // add layer
+        map.addLayer({
+            "id": 'msa_1-layer',
+            "type": "fill",
+            "source": 'msa-source',  // name of the source
+            "source-layer": 'msareap010g', // a layer from the source
+            "paint": {
+                "fill-outline-color": "rgba(255,255,255,0.3)",
+                'fill-color': "#81b2c1",
+                'fill-opacity': 0.65
+            }
+        }, options.labelPosition); // place polygon under these labels.
+
+        // set zoom range
+        map.setLayerZoomRange('msa_1-layer', options.msaMinZoom, options.msaMaxZoom);
+    }
+    addMSALayer();
+
+/*
+
+THIS WORKS BUT MAYBE TOO ABSTRACT
+
+
+    function addBackgroundLayer(source){
+
+        var layerId = source.layer +"-layer";
 
         // make sure layer isn't already added
-        if (map.getLayer(source.name) === undefined){
+        if (map.getLayer(layerId) === undefined){
 
             // add layer
             map.addLayer({
-                "id": source.name,
+                "id": layerId,
                 "type": "fill",
                 "source": source.name,  // name of the source
                 "source-layer": source.layer, // a layer from the source
@@ -186,22 +217,71 @@ map.on('load', function() {
                         stops: stops, // array of value:color pairs
                     },
                     'fill-opacity': 0.85
-                }
+                },
+                "filter": source.filter
             }, 'water-label'); // Place polygon under these labels.
+
+            details.layers.push(layerId);
+        
+            map.setLayerZoomRange(layerId, options.tractMinZoom, options.tractMaxZoom);
         } 
-
-        // determine zoom range for layer
-        if (source.name == "msa_1"){
-            map.setLayerZoomRange(source.name, options.msaMinZoom, options.msaMaxZoom);
-        } else {
-            map.setLayerZoomRange(source.name, options.tractMinZoom, options.tractMaxZoom);
-        }
     }
-
-
     for (var i in sourcesAndLayers){
-        addLayer(sourcesAndLayers[i]);
+        addBackgroundLayer(sourcesAndLayers[i]);
     }
+
+*/
+    // add layer
+    function addTractLayer(source,layer,property){
+
+        map.addLayer({
+            "id": layer,
+            "type": "fill",
+            "source": source,  // name of the source
+            "source-layer": layer, // a layer from the source
+            "paint": {
+                "fill-outline-color": "rgba(255,255,255,0.3)",
+                'fill-color': {
+                    property: property, // the property to use
+                    stops: stops, // array of value:color pairs
+                },
+                'fill-opacity': 0.65
+            }
+        }, options.labelPosition); // Place polygon under these labels.
+
+        details.layers.push(layer);
+    
+        map.setLayerZoomRange(layer, options.tractMinZoom, options.tractMaxZoom);
+    }
+    addTractLayer("16740_Charlotte","16740_tractgeojson",'avgroomsE');
+    addTractLayer("11700_Asheville","11700_tractgeojson",'avgroomsE');
+
+
+    function addCharlotteHighlight(){
+
+        var layerId = "16740_tractgeojson_highlight";
+
+        // add layer
+        map.addLayer({
+            "id": layerId,
+            "type": "fill",
+            "source": "16740_Charlotte",  // name of the source
+            "source-layer": "16740_tractgeojson", // a layer from the source
+            "paint": {
+                "fill-outline-color": "rgba(255,255,255,0.0)",
+                'fill-color': {
+                    property: 'avgroomsE', // the property to use
+                    stops: stops, // array of value:color pairs
+                },
+                'fill-opacity': 0.65
+            },
+            "filter": ["==", "TID", ""]
+        }, options.labelPosition); // Place polygon under these labels.
+
+    
+        map.setLayerZoomRange(layerId, options.tractMinZoom, options.tractMaxZoom);
+    }
+    addCharlotteHighlight();
 
 
 
@@ -286,47 +366,71 @@ map.on('load', function() {
         */
     }
 
-    $(document.body).on('mouseenter', '.featureHighlight', function(){
-        console.log(this.id)
-
-        //map.setFilter("16740_Charlotte", ["==", "TID", "g45057010200"]);
-        //map.setPaintProperty("16740_Charlotte", 'fill-color', "#990000");
-    })
-
     /**
      *  Handle activity on the map, update params
      */
-    function handleMapActivity(event){
+    function updateMapDetails(event){
 
-        details.bounds = map.getBounds();
-        details.zoom = map.getZoom();
+        details.bounds = map.getBounds();   // get viewport
+        details.zoom = map.getZoom();       // get current zoom
+
+        // reporting
         console.log("details",JSON.stringify(details));
         console.log("event",event);
 
+        updateVisibleFeatures();    // update visible features
+    }
+    map.on('zoomend', function(event) { updateMapDetails(event) });
+    map.on('moveend', function(event) { updateMapDetails(event) });
+    //updateMapDetails('load test');
+
+    /**
+     *  Get all features in viewport
+     */
+    function updateVisibleFeatures(){
+
         // return list of features
-        features = map.queryRenderedFeatures(/* omitting param uses viewport */ {
+        features = map.queryRenderedFeatures(/* omit param, defaults to viewport */ {
             layers: details.layers // only get features in these layers
         });
 
-        // change the cursor style as a UI indicator.
-        map.getCanvas().style.cursor = features.length ? 'pointer' : '';
-
-
-
-        var f = "";
-        for(var i=0; i<30; i++){
+        // create HTML to display visible features
+        var featuresStr = "";
+        for(var i=0; i<100; i++){
             if (features[i]){
-                f += "<a class='featureHighlight' href='#' id='"+ features[i].properties.TID +"'>"+ features[i].properties.TID +"</a><br>";
+                featuresStr += "<a class='featureHighlight' href='#' id='"+ features[i].properties.TID +"'>"+ features[i].properties.TID +"</a><br>";
             }    
         }
-        $('#features').html(f);
+        $('#features').html(featuresStr);
 
         console.log("features.length: ",features.length);
         console.log(features);
 
     }
-    map.on('zoomend', function(event) { handleMapActivity(event) });
-    map.on('moveend', function(event) { handleMapActivity(event) });
+    /**
+     *  Hover over feature in list
+     */
+    $(document.body).on('mouseenter', '.featureHighlight', function(){
+        console.log(this.id)
+
+        map.setFilter("16740_tractgeojson_highlight", ["==", "TID", this.id]);
+        map.setPaintProperty("16740_tractgeojson_highlight", 'fill-color', "#990000");
+    })
+    $(document.body).on('mouseleave', '.featureHighlight', function(){
+        console.log(this.id)
+
+        //map.setFilter("16740_Charlotte", ["==", "TID", this.id]);
+        //map.setPaintProperty("16740_Charlotte", 'fill-color', "#990000");
+    })
+
+
+    /*
+
+// FOR MAP INTERACTION
+        // change the cursor style as a UI indicator.
+        map.getCanvas().style.cursor = features.length ? 'pointer' : '';
+
+    */
 
 
 // When a click event occurs near a polygon, open a popup at the location of
