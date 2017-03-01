@@ -28,7 +28,7 @@ server.connection({
 
 
 // mysql
-// source: https://github.com/felixge/node-mysql
+// source: https://github.com/mysqljs/mysql
 var mysql_keys = require('./inc/mysql_keys'); // sensitive
 var mysql = require('mysql');
 var db = mysql.createConnection({
@@ -48,14 +48,10 @@ db.on('error', function(err) {		// test for error
 	db.connect();
 });
 server.bind({ db: db });			// bind db to server
-
-
-
+//if (!this.db) console.log("db: " + JSON.stringify(this.db));
 
 // require routes
 server.route(require('./routes'));
-
-
 
 
 

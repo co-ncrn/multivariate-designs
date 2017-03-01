@@ -4,22 +4,18 @@
 
 'use strict';
 
-//var Handlers = require('./handlers/es_calls.js');
+var Handlers = require('./handlers/db_calls.js');
 
 // export routes to server
 module.exports = [
 	{
 		method: 'GET',						
 		path: '/',
-		handler: function (request,reply){
-			reply('Hello World');
-		}
+		handler: Handlers.root
 	},{
 		method: 'GET',
-		path: '/json',
-		handler: function(request,reply){
-			reply({ hello: "World" });
-		}
+		path: '/msa/{msa}',
+		handler: Handlers.test
 	}
 
 

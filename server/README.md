@@ -20,3 +20,8 @@ join the correct tables
 reply
 	{ }
 
+
+
+
+Size of all CSV in MySQL = 246 MB
+http://stackoverflow.com/questions/14714750/how-to-get-true-size-of-mysql-database
