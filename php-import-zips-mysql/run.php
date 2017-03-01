@@ -11,7 +11,7 @@ require 'inc/config.php';	 				// create database connection
 
 // testing
 $dirtests = 0;
-$tests = 0;
+$inserttests = 0;
 $limit = 2;
 
 // get list of directories
@@ -70,20 +70,22 @@ foreach ($dirs as $dir) {
 					$total_file_count++;
 
 					$file = "zip://". $path.$dir."/".$zip ."#". $csv;	// define CSV file path inside ZIP
-					$arr = array_map('str_getcsv', file($file));		// import CSV to array
-					//print_r($arr);
+					$csv_arr = array_map('str_getcsv', file($file));	// import CSV to array
+					//print_r($csv_arr);
 					$db_table_name = $dir."_".$scenario."_".$type;		// define db table name
 
+					
+					$csv_arr = removeCSVCols($csv_arr);					// remove columns we don't need
+					$csv_col_names = returnCSVCols($csv_arr[0]);
 					// create db table and insert CSV
-					$csv_col_names = returnCSVCols($arr[0]);
-					//if (!createTable($db_table_name,$type,$scenario,$csv_col_names)) exit("\ncreateTable error");
-					//if (!insertCSV($db_table_name,$arr,$type,$scenario,$csv_col_names)) exit("\ninsertCSV error");
+					if (!createMySQLTable($db_table_name,$type,$scenario,$csv_col_names)) exit("\ncreateTable error");
+					if (!insertCSVMySQL($db_table_name,$csv_arr,$csv_col_names)) exit("\insertCSVMySQL() error");
 				
 
 
 					
 
-					if (++$tests >= 3) exit("\n\n $tests tests done\n\n");
+					if (++$inserttests >= 2) exit("\n\n $inserttests insert tests done\n\n");
 
 				} else {
 					print "\t\t - ". " - ####### ". $csv ." CSV FILE MISSING ########"."\n";	
@@ -102,136 +104,137 @@ foreach ($dirs as $dir) {
 
 /**
  *	returnCSVCols()
- *	@param  Array $header_row first line of CSV
- *	@return Array $cols 
+ *	Remove columns from a CSV arr
+ *	@param  Array $csv_arr CSV
+ *	@return Array $result
  */
-function returnCSVCols($header_row){
-	// loop through each column in first line of csv
-	$cols = array();
-	foreach ($header_row as $col){
-		if ($col == "TID" || $col == "RID" || substr($col, 0, 1) != "B" )
-			$cols[] = $col;
+function removeCSVCols($csv_arr){
+	$result = array(); 		// the result
+	$keep_cols = array();	// col #s to keep
+
+	// loop through each column in header row of csv
+	foreach ($csv_arr[0] as $keyNum => $col){
+		// keep these
+		if ($col == "TID" || $col == "RID" || substr($col, 0, 1) !== "B" )
+				$keep_cols[] = $keyNum;
 	}
-	//print_r($cols);
-	return $cols;
+	// loop through ALL rows
+	foreach ($csv_arr as $rowNum => $row){
+		// arr of columns to keep
+		$keep_row = array();	
+		// loop through ALL cols
+		foreach ($row as $keyNum => $col){
+			// if col # is in $keep_cols
+			if ( in_array($keyNum,$keep_cols) )
+				// add it to keep_row
+				$keep_row[] = $col;
+		}
+		$result[] = $keep_row;
+	}
+	//print_r($result);
+	return $result;
 }
 
 /**
- *	createTable()
+ *	returnCSVCols()
+ *	@param  Array $header_row first line of CSV
+ *	@return Array $cols - An array containing column names
+ */
+function returnCSVCols($header_row){
+	// loop through each column in first line of csv
+	$col_names = array();
+	foreach ($header_row as $col){
+		//if ($col == "TID" || $col == "RID" || substr($col, 0, 1) != "B" )
+			$col_names[] = $col;
+	}
+	//print_r($col_names);
+	return $col_names;
+}
+
+/**
+ *	createMySQLTable()
  *	@param String - $db_table_name 
  *	@param String - $type "crosswalk","input_tracts","output_regions" 
  *	@param String - $scenario "gen","hous","pov","trans"
  */
-function createTable($db_table_name,$type,$scenario,$csv_col_names){
+function createMySQLTable($db_table_name,$type,$scenario,$csv_col_names){
 	global $db;
-	print "\t\t - Creating db table: ". $db_table_name ."\n";
+	print "\t\t\t - Creating db table: ". $db_table_name ."\n";
 
 	// drop db table if it exists
 	$sql = "DROP TABLE IF EXISTS $db_table_name";
 	$result = $db->rawQuery($sql);
 	// error checking
-	if ($db->getLastErrno() === 0) echo "\nDROP TABLE succesfull";
-	else echo "\nDROP TABLE failed. Error: ". $db->getLastError();
-
-
-
-
+	//if ($db->getLastErrno() === 0) echo "\nDROP TABLE succesfull";
+	//else echo "\nDROP TABLE failed. Error: ". $db->getLastError();
 
 	// determine db table create syntax
-	if ($type == "crosswalk"){
-		$sql = "CREATE TABLE $db_table_name (
-					`RID` int(11) DEFAULT NULL,
-					`TID` varchar(255) DEFAULT NULL
-				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-	} else if ($type == "input_tracts"){
-		$sql = "CREATE TABLE $db_table_name (
-					`TID` varchar(255) DEFAULT NULL,
-					/*`B17006_016E` int(11) DEFAULT NULL,
-					`B25120_005M` varchar(255) DEFAULT NULL,
-					`B17001_031E` int(11) DEFAULT NULL,
-					`B23025_004E` int(11) DEFAULT NULL,
-					`B17001_031M` int(11) DEFAULT NULL,
-					`B23025_004M` int(11) DEFAULT NULL,
-					`B25089_001M` varchar(255) DEFAULT NULL,
-					`B25065_001E` varchar(255) DEFAULT NULL,
-					`B17001_001E` int(11) DEFAULT NULL,
-					`B25065_001M` varchar(255) DEFAULT NULL,
-					`B17001_001M` int(11) DEFAULT NULL,
-					`B25120_005E` varchar(255) DEFAULT NULL,
-					`B17006_001E` int(11) DEFAULT NULL,
-					`B23025_003E` int(11) DEFAULT NULL,
-					`B25120_002E` varchar(255) DEFAULT NULL,
-					`B17006_001M` int(11) DEFAULT NULL,
-					`B23025_003M` int(11) DEFAULT NULL,
-					`B25120_002M` varchar(255) DEFAULT NULL,
-					`B25089_001E` varchar(255) DEFAULT NULL,
-					`B17006_016M` int(11) DEFAULT NULL,
-					`B01003_001E` int(11) DEFAULT NULL,
-					`B01003_001M` int(11) DEFAULT NULL,*/
-					`chabvpovE` varchar(255) DEFAULT NULL,
-					`abvpovE` varchar(255) DEFAULT NULL,
-					`employedE` varchar(255) DEFAULT NULL,
-					`hsincownE` varchar(255) DEFAULT NULL,
-					`hsincrentE` varchar(255) DEFAULT NULL,
-					`chabvpovM` varchar(255) DEFAULT NULL,
-					`abvpovM` varchar(255) DEFAULT NULL,
-					`employedM` varchar(255) DEFAULT NULL,
-					`hsincownM` varchar(255) DEFAULT NULL,
-					`hsincrentM` varchar(255) DEFAULT NULL,
-					`chabvpovCV` varchar(255) DEFAULT NULL,
-					`abvpovCV` varchar(255) DEFAULT NULL,
-					`employedCV` varchar(255) DEFAULT NULL,
-					`hsincownCV` varchar(255) DEFAULT NULL,
-					`hsincrentCV` varchar(255) DEFAULT NULL
-				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-	} else if ($type == "output_regions"){
-		$sql = "CREATE TABLE $db_table_name (
-				`RID` int(11) DEFAULT NULL,
-				`TID` varchar(255) DEFAULT NULL
-				) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+	$sql = "CREATE TABLE $db_table_name ( ";
+	foreach($csv_col_names as $key => $col){
+		if ($key > 0) $sql .= ",";
+		// RID is a real integer
+		if ($col == "RID")
+			$sql .= "`$col` int(11) DEFAULT NULL";
+		// TID is a string ... for now
+		else if ($col == "TID")
+			$sql .= "`$col` varchar(15) DEFAULT NULL";
+		// all other columns
+		else 
+			$sql .= "`$col` varchar(35) DEFAULT NULL";
 	}
+	$sql .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+	//print "$sql\n";
+
 	// run query
 	$result = $db->rawQuery($sql);
-	// error checking
-	if ($db->getLastErrno() === 0) echo "\nCREATE TABLE succesfull";
-	else echo "\nCREATE TABLE failed. Error: ". $db->getLastError();
 
+	// error checking
+	if ($db->getLastErrno() === 0){
+		//echo "\nCREATE TABLE succesfull";
+		return 1;
+	} else {
+		echo "\nCREATE TABLE failed. Error: ". $db->getLastError();
+		return 0;
+	}
 }
 
 
 /**
  *	insertData()
  *	@param String - $db_table_name 
- *	@param Array - $arr Array of data to insert 
- *	@param String - $type "crosswalk","input_tracts","output_regions" 
- *	@param String - $scenario "gen","hous","pov","trans"
+ *	@param Array - $csv_arr Array of data to insert 
+ *	@param Array - $csv_col_names
  */
-function insertCSV($db_table_name,$arr,$type,$scenario,$csv_col_names){
-	
+function insertCSVMySQL($db_table_name,$csv_arr,$csv_col_names){
 	global $db;
+	print "\t\t\t - Inserting CSV into: ". $db_table_name ."\n";
 
-	// columns
-	if ($type == "crosswalk"){
-		$cols = Array("RID", "TID");
-	} else if ($type == "input_tracts"){
-		if ($scenario == "gen"){
-			$cols = Array("TID","");
-		} else if ($scenario == "hous"){
-			$cols = Array("xxx");
-		} else if ($scenario == "pov"){
-			$cols = Array("xxx");
-		} else if ($scenario == "trans"){
-			$cols = Array("xxx");
-		}
-	} else if ($type == "output_regions"){
-		$cols = Array("xxx");
-	}
+
+		print_r("\n db_table_name: $db_table_name \n");
+
+		print_r($csv_arr);
+		print_r($csv_col_names);
+
+		print_r("\n csv_arr row count: ". count($csv_arr));
+		print_r("\n csv_col_names count: ". count($csv_col_names));
+
+	// remove header row
+	array_shift($csv_arr);
+
 	// insert
-	$result = $db->insertMulti($db_table_name, $arr, $cols);
-	// error checking
-	if ($db->getLastErrno() === 0) echo "\nninsertMulti succesfull";
-	else echo "\nninsertMulti failed. Error: ". $db->getLastError();
+	$result = $db->insertMulti($db_table_name, $csv_arr, $csv_col_names);
 
+	// error checking
+	if ($db->getLastErrno() === 0){
+		//echo "\ninsertMulti succesfull";
+		return 1;
+	} else {
+		echo "\ninsertMulti failed. Error: ". $db->getLastError();
+		print_r($db_table_name);
+		print_r($csv_arr);
+		print_r($csv_col_names);
+		return 0;
+	}
 }
 
 
