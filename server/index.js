@@ -1,5 +1,28 @@
 
+/**
+ *	Regionalization Server
+ *	@requires: node, npm, etc.
+ *	@use: forever to run https://github.com/foreverjs/forever
+ *	$ forever start index.js
+ *	on reboot: http://stackoverflow.com/a/21847976/441878
+ */
 
+var fs = require('./inc/functions');		// include functions file
+var memwatch = require('memwatch-next');	// include memwatch
+
+const Hapi = require('hapi');		// load hapi module
+const server = new Hapi.Server();	// create hapi server object
+
+// create server connection
+server.connection({
+	host : 'localhost',
+	port: 3000,
+  	routes: {
+		cors: {
+			origin: ['*']
+		}
+	}
+});
 
 /*
 
@@ -23,13 +46,6 @@ reply
 */
 
 
-
-
-const Hapi = require('hapi');		// load hapi module
-const server = new Hapi.Server();	// create hapi server object
-server.connection ({ port:4000 });	// connect server to port
-
-/*
 // mysql
 // source: https://github.com/felixge/node-mysql
 var mysql_keys = require('./inc/mysql_keys'); // sensitive
@@ -39,24 +55,26 @@ var db = mysql.createConnection({
     port	 : 3306,
 	user     : mysql_keys.user,
 	password : mysql_keys.password,
-	//database : 'stinky2_db_utf8', // !!!!!!!
 	database : mysql_keys.database,
 	charset	 : 'utf8mb4',
     acquireTimeout: 10000000,
     multipleStatements: true
 });
-db.connect();
-// test for error
-db.on('error', function(err) {
-	console.log(err.code); // 'ER_BAD_DB_ERROR'
+db.connect();						// connect to db
+db.on('error', function(err) {		// test for error
+	console.log(err.code); 		
 	console.error("DATABASE ERRRORRRRRRR");
 	db.connect();
 });
+server.bind({ db: db });			// bind db to server
 
-*/
+
+
 
 // require routes
 server.route(require('./routes'));
+
+
 
 
 
@@ -76,3 +94,5 @@ server.register({								// first arg to server.register() is a plugin config ob
 		console.log('Server running at: ', server.info.uri);
 	});
 });
+
+
