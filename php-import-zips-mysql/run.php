@@ -1,7 +1,7 @@
 <?php
 
 /**
- *	Import all the CSVs from Regionalization data into MySQL
+ *	Import all the CSVs, from each of the ZIPs in Regionalization data, into MySQL
  */
 
 require __DIR__ . '/vendor/autoload.php';	// libs
@@ -80,12 +80,9 @@ foreach ($dirs as $dir) {
 					// create db table and insert CSV
 					if (!createMySQLTable($db_table_name,$type,$scenario,$csv_col_names)) exit("\ncreateTable error");
 					if (!insertCSVMySQL($db_table_name,$csv_arr,$csv_col_names)) exit("\insertCSVMySQL() error");
-				
-
-
-					
-
-					if (++$inserttests >= 2) exit("\n\n $inserttests insert tests done\n\n");
+			
+					// testing
+					//if (++$inserttests >= 2) exit("\n\n $inserttests insert tests done\n\n");
 
 				} else {
 					print "\t\t - ". " - ####### ". $csv ." CSV FILE MISSING ########"."\n";	
@@ -208,18 +205,8 @@ function createMySQLTable($db_table_name,$type,$scenario,$csv_col_names){
 function insertCSVMySQL($db_table_name,$csv_arr,$csv_col_names){
 	global $db;
 	print "\t\t\t - Inserting CSV into: ". $db_table_name ."\n";
-
-
-		print_r("\n db_table_name: $db_table_name \n");
-
-		print_r($csv_arr);
-		print_r($csv_col_names);
-
-		print_r("\n csv_arr row count: ". count($csv_arr));
-		print_r("\n csv_col_names count: ". count($csv_col_names));
-
-	// remove header row
-	array_shift($csv_arr);
+	
+	array_shift($csv_arr);	// remove header row
 
 	// insert
 	$result = $db->insertMulti($db_table_name, $csv_arr, $csv_col_names);
@@ -230,9 +217,11 @@ function insertCSVMySQL($db_table_name,$csv_arr,$csv_col_names){
 		return 1;
 	} else {
 		echo "\ninsertMulti failed. Error: ". $db->getLastError();
-		print_r($db_table_name);
+		print_r("\n db_table_name: $db_table_name \n");
 		print_r($csv_arr);
 		print_r($csv_col_names);
+		print_r("\n csv_arr row count: ". count($csv_arr));
+		print_r("\n csv_col_names count: ". count($csv_col_names));
 		return 0;
 	}
 }
