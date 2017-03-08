@@ -1,0 +1,232 @@
+<html>
+<head>
+<script src="js/jquery-1.11.1.min.js"></script>
+<style>
+body { font: 12px/15px Arial  }
+#tracts { position:absolute; top:42px; width:600px; }
+#tracts div { position:absolute; height:80px; width:80px; overflow:auto; padding:5px; text-align: center; }
+#tracts div span { display: inline-block; margin-top:30px; font-size: 14px; }
+#info{ height:20px; padding: 5px;   }
+</style>
+</head>
+<body>
+
+<div id="tracts"></div>
+<div id='info'>info</div>
+
+<script>
+
+var ts = 30, str = "", showcv = false;
+var def = "Move cursor up/down and left/right across the whole browser window... ";
+
+$(document).ready(function(){
+
+  $("#info").html( def );
+
+  $(document).on("mousemove", function(e){ 
+    console.log("height: " + $(window).height());
+    console.log("pageY: "+ e.pageY + " / pageX: "+ e.pageX);
+
+
+    if (e.pageX > ($(window).width() - e.pageX)){
+      showcv = true;
+    } else {
+      showcv = false;
+    }
+
+
+    var vert = convertRange(e.pageX,0,$(window).width(),0.0,1.0);
+    if (vert > .5){
+      var vert_msg = " CV <b>ON</b> ... ";
+    } else {
+      var vert_msg = " CV OFF ... ";
+    }
+    var horiz = convertRange(e.pageY,0,$(window).height(),0.0,1.0);
+    if (horiz > .5){
+      var horiz_msg = " <b>AFTER</b> regionalization";
+    } else {
+      var horiz_msg = " before regionalization";
+    }
+    $("#info").html( def + vert_msg + horiz_msg );
+    update(0,horiz);
+  });
+
+});
+
+
+
+var tracts = [
+  { "ovalue": 20, "ocv":.2, "change": 0 },
+  { "ovalue": 50, "ocv":.6, "change": 0 },
+  { "ovalue": 30, "ocv":.4, "change": 0 },
+  { "ovalue": 20, "ocv":.6, "change": 1, "value": 20, "cv":.2 },
+  { "ovalue": 10, "ocv":.0, "change": 0 },
+  { "ovalue": 40, "ocv":.2, "change": 0 },
+  { "ovalue": 30, "ocv":.4, "change": 0 },
+  { "ovalue": 20, "ocv":.8, "change": 1, "value": 30, "cv":.4 },
+  { "ovalue": 50, "ocv":.8, "change": 1, "value": 30, "cv":.4 },
+  { "ovalue": 20, "ocv":.6, "change": 1, "value": 20, "cv":.2 },
+  { "ovalue": 40, "ocv":.2, "change": 0 },
+  { "ovalue": 20, "ocv":.2, "change": 0 },
+  { "ovalue": 20, "ocv":.2, "change": 0 },
+  { "ovalue": 50, "ocv":.0, "change": 0 },
+  { "ovalue": 30, "ocv":.6, "change": 1, "value": 30, "cv":.4 },
+  { "ovalue": 10, "ocv":.6, "change": 1, "value": 20, "cv":.2 },
+  { "ovalue": 20, "ocv":.2, "change": 0 },
+  { "ovalue": 10, "ocv":.4, "change": 0 },
+  { "ovalue": 20, "ocv":.0, "change": 0 },
+  { "ovalue": 30, "ocv":.4, "change": 0 },
+  { "ovalue": 10, "ocv":.6, "change": 1, "value": 10, "cv":.2 },
+  { "ovalue": 20, "ocv":.0, "change": 0 },
+  { "ovalue": 30, "ocv":.6, "change": 1, "value": 30, "cv":.4 },
+  { "ovalue": 20, "ocv":.8, "change": 1, "value": 30, "cv":.4 },
+  { "ovalue":  0, "ocv":.4, "change": 0 },
+  { "ovalue": 10, "ocv":.2, "change": 0 },
+  { "ovalue": 20, "ocv":.6, "change": 1, "value": 10, "cv":.2 },
+  { "ovalue": 30, "ocv":.8, "change": 1, "value": 30, "cv":.4 },
+  { "ovalue": 40, "ocv":.6, "change": 1, "value": 30, "cv":.4 },
+  { "ovalue": 50, "ocv":.2, "change": 1, "value": 30, "cv":.4 }
+];
+
+function update(start,cvchange) {
+  var str = "";
+  var tract = {};
+  for (var i = 0; i < ts; i++) {
+
+    var tract = tracts[i];    
+
+    // duplicate values (yes I am a lazy programmer)
+    if (tract.change === 0) {
+      tract.value = tract.ovalue;
+      tract.cv = tract.ocv;
+    }
+
+    if (i >= 24){         var top = 4*90;
+    } else if (i >= 18){  var top = 3*90;
+    } else if (i >= 12){  var top = 2*90;
+    } else if (i >= 6){   var top = 1*90;
+    } else {              var top = 0; }
+    var left = 90 * (i % 6);
+
+
+
+    var ovaluecolor = convertRange(tract.ovalue,0,50,242,102);
+    var valuecolor = convertRange(tract.value,0,50,242,102);
+    var ocvcolor = convertRange(tract.ocv,0,1,242,102);
+    var cvcolor = convertRange(tract.cv,0,1,242,102);
+
+    if (cvchange < .5 ){
+      var rgb = ovaluecolor +","+ ovaluecolor +","+ ovaluecolor;
+      var cvrgba = "255,0,0,"+ tract.ocv;
+      var val = tract.ovalue;
+      var cv = tract.ocv;
+    } else {
+      var rgb = valuecolor +","+ valuecolor +","+ valuecolor;
+      var cvrgba = "255,0,0,"+ tract.cv;
+      var val = tract.value;
+      var cv = tract.cv;
+    }
+
+
+
+
+    // create html
+    str += "<div id='tract"+ i +"' style='top:"+top+"; left:"+left+"; background:rgb("+ rgb +")'>" +
+    "<span class='value'>" /*+i+". "*/ + val + "</span>, " +
+    "<span class='cv'>" + cv + "</span>" +
+    "</div>";
+
+    if (showcv){
+      str += "<div id='cv"+ i +"' style='top:"+top+"; left:"+left+"; background:rgba("+ cvrgba +")'></div>";
+    }
+  }
+  $("#tracts").html(str);
+}
+update(1,0);
+
+
+
+/**
+ *  Convert value from one number range to another
+ */
+function convertRange(old_value,old_min,old_max,new_min,new_max,round){
+  old_range = (old_max - old_min); 
+  new_range = (new_max - new_min); 
+  return Math.round( ((((old_value - old_min) * new_range) / old_range) + new_min) );
+}
+
+
+
+/*
+
+var tracts = [], ts = 30, str = "";
+
+function update(start,cvchange) {
+  var str = "";
+  var tract = {};
+  for (var i = 0; i < ts; i++) {
+    // run once
+    
+    if (start === 1){
+      tract = { "ovalue": 0, "value": 0, "ocv":0.0, "cv":0.0 };
+      // set original value 0-255
+      tract.ovalue = Math.round(Math.random()*100)+155;
+      // set original cv 0-1
+      tract.ocv = Math.round(Math.random()*10)/10;
+      tract.ocv = Math.round(getRandomArbitrary(3,7))/10;
+    } else {
+      tract = tracts[i];
+    }
+
+    // update cv
+    tract.cv = Math.round(tract.ocv * cvchange *10)/10;
+    // update value using cv
+    tract.value = Math.round((tract.ovalue*tract.cv)*10/10) ;
+    
+    // store it
+    tracts[i] = tract;
+      
+      
+      
+    //tract.val = Math.round(tract.orig * cv * 10);
+    //tract.uncert = Math.round(tract.d * cv * 10) / 10;
+
+    // create the color for the tract
+    if (tract.cv > .5){
+      var r = 255;
+    } else {
+      var r = tract.value;
+    }
+    var rgb = r +","+ tract.value +","+ tract.value;
+    // create html
+    str += "<div id='tract"+ i +"' style='background:rgb("+ rgb +")'>" +
+    "<span class='ovalue'>" + tract.ovalue + "</span> / " +
+    "<span class='value'>" + tract.value + "</span><br>" +
+    "<span class='ocv'>" + tract.ocv + "</span> / " +
+    "<span class='cv'>" + tract.cv + "</span>" +
+    "</div>";
+  }
+  $("#tracts").html(str);
+}
+update(1,1);
+
+$("button").on("click",function(){
+  //update(1,1);
+});
+
+
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+*/
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
