@@ -10,18 +10,18 @@ module.exports = {
 	/**
 	 *	Validate MSA
 	 *	- make sure MSA is integer and between 10180-49740
-	 */
+	 
 	validateMSA: function(msa){
 		if ( validator.isInt( msa, { min: 10180, max: 49740 })){
 			return true;
 		} else {
 			return false;
 		}
-	},
+	},*/
 	/**
 	 *	Validate MSA
 	 *	- make sure MSA is integer and between 10180-49740
-	 */
+	 
 	validateScenario: function(scenario){
 		// make sure MSA is integer and between 10180-49740
 		if ( this.validator.isInt( scenario, { min: 10180, max: 49740 })){
@@ -29,7 +29,7 @@ module.exports = {
 		} else {
 			return false;
 		}
-	},
+	},*/
 
 
 
