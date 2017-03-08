@@ -32,6 +32,10 @@ var sources = [
 		"tractError":"t_chabvpovM","tractEstimate":"t_chabvpovE","regionError":"r_chabvpovM","regionEstimate":"r_chabvpovE"}
 ];
 
+
+
+
+
 /**
  *	Load data from remote source
  *	@param {Integer} _source - the data source index
@@ -50,6 +54,34 @@ function load_data(_source,status,callback){
 		callback(data,status);
 	});
 }
+
+
+function load_api_data(_msa,_scenario,_data,callback){
+
+	d3.json("http://localhost:3000/api/"+_msa+"/"+_scenario+"/"+_data, function(error, json) {
+		if (error) return console.warn(error);
+		data = json;
+		console.log(data);
+	});
+
+	/*
+	source = _source;
+	d3.csv("../data/"+ sources[source]["file"], function(data){
+		//console.log(data);
+		data = remove_rows(data,"inf"); 		// remove rows with "inf" (infinity)
+		//limit = Math.ceil(Math.random()*10)+10; 	// limit is randomized to mimic map interaction
+		data = data.slice(0,limit);				// confine to limit
+		display_table(data,"table",limit);		// display table
+		//console.log(data);
+		callback(data,status);
+	});
+	*/
+}
+load_api_data("16740","gen","married");
+
+
+
+
 
 
 function fixdata(data){
@@ -105,6 +137,34 @@ function dec_conv(num){
 }
 
 
+
+var scenarios_data = {
+	"gen": ["occupied","married","bachdeg","samehous","white","black","hisp","under18","65over","avgrooms","avghhinc","pphh"],
+	"hous": ["occupied","pctown","pctrent","snglfmly","avgrooms","avghmval","avgrent"],
+	"pov": ["chabvpov","abvpov","employed","hsincown","hsincrent"],
+	"trans": ["drvlone","transit","vehiclpp","avgcmmte"]
+};
+
+var shtml = '';
+// add buttons for ALL data sources
+for (var i in scenarios_data){
+
+	for (var j in scenarios_data[i]){
+
+		shtml +='<p><button class="btn btn-sm data-btn" id="tract'+ i +'">'+ scenarios_data[i].name +' (tract)</button> ';
+		shtml += '<button class="btn btn-sm data-btn" id="region'+ i +'">'+ scenarios_data[i].name +' (region)</button></p>';
+		$(".sources").append(shtml);
+		// add listeners
+		$("#tract"+ i).on("mouseover",function(){
+			load_data(this.id.substr(this.id.length - 1),"tract",tabulate);
+		});
+		$("#region"+ i).on("mouseover",function(){
+			load_data(this.id.substr(this.id.length - 1),"region",tabulate);
+		});
+
+
+	}
+}
 
 
 // add buttons for data sources
