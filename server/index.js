@@ -6,11 +6,14 @@
  *	$ forever start index.js
  *	on reboot: http://stackoverflow.com/a/21847976/441878
  */
+'use strict';
 
-var fs = require('./inc/functions');		// include functions file
-var memwatch = require('memwatch-next');	// include memwatch
+const fs = require('./inc/functions');	// include functions file
+const memwatch = require('memwatch-next');// watch for memory leaks
+const sanitizer = require('sanitizer');	// sanitize input https://www.npmjs.com/package/sanitizer
+const validator = require('validator');	// validate input https://www.npmjs.com/package/validator
 
-const Hapi = require('hapi');		// load hapi module
+const Hapi = require('hapi');		// load hapi server module
 const server = new Hapi.Server();	// create hapi server object
 
 // create server connection
@@ -24,14 +27,11 @@ server.connection({
 	}
 });
 
-
-
-
 // mysql
 // source: https://github.com/mysqljs/mysql
-var mysql_keys = require('./inc/mysql_keys'); // sensitive
-var mysql = require('mysql');
-var db = mysql.createConnection({
+const mysql_keys = require('./inc/mysql_keys'); // sensitive
+const mysql = require('mysql');
+const db = mysql.createConnection({
 	host     : mysql_keys.host,
     port	 : 3306,
 	user     : mysql_keys.user,
@@ -47,11 +47,19 @@ db.on('error', function(err) {		// test for error
 	console.error("DATABASE ERRRORRRRRRR");
 	db.connect();
 });
-server.bind({ db: db });			// bind db to server
-//if (!this.db) console.log("db: " + JSON.stringify(this.db));
 
-// require routes
-server.route(require('./routes'));
+// server binding ** call before routes! **
+server.bind({  
+	db: db, 				// bind db connection to server
+	fs: fs, 				// bind functions to server
+	sanitizer: sanitizer, 	// bind sanitizer to server
+	validator: validator 	// bind validator to server
+});			
+
+server.route(require('./routes'));	// require routes
+
+
+
 
 
 

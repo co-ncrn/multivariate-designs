@@ -14,8 +14,8 @@ module.exports = [
 		handler: Handlers.root
 	},{
 		method: 'GET',
-		path: '/msa/{msa}',
-		handler: Handlers.test
+		path: '/api/{msa}/{scenario}/{data}',
+		handler: Handlers.get_MSA_scenario_data
 	}
 
 
