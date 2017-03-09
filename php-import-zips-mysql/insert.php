@@ -112,7 +112,7 @@ function removeCSVCols($csv_arr){
 	// loop through each column in header row of csv
 	foreach ($csv_arr[0] as $keyNum => $col){
 		// keep these
-		if ($col == "TID" || $col == "RID" || substr($col, 0, 1) !== "B" )
+		if ($col == "TID" || $col == "RID" || substr($col, 0, 1) !== "B" ) // but not this last one
 				$keep_cols[] = $keyNum;
 	}
 	// loop through ALL rows

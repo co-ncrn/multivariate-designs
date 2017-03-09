@@ -10,6 +10,12 @@ require 'inc/config.php';	 				// create database connection
 
 
 
+
+
+
+
+
+// updates the descriptions in the database using csa_codes
 function updateDescriptionsOnly(){
 	global $db;
 	$data = importCSV();
@@ -20,14 +26,14 @@ function updateDescriptionsOnly(){
 		
 		$db->where ('msa', $arr["msa"]);
 		if ($db->update ('_metadata', $arr))
-		    echo $db->count . ' records were updated';
+		    echo "\n". $db->count . ' records were updated';
 		else
-		    echo 'update failed: ' . $db->getLastError();
+		    echo "\nupdate failed: " . $db->getLastError();
 
 	}
 }
 // update just the descriptions
-updateDescriptionsOnly();
+//updateDescriptionsOnly();
 
 
 
@@ -87,18 +93,50 @@ function insertMSA_Scenario(){
 	    // explode table name
 		$arr = explode("_", $table["TABLE_NAME"]);
 
-		// store vars for insert
-		$data = Array ("msa" => $arr[0],"scenario" => $arr[1]);
-		print implode(",", $data) ."\n";
 
-		$id = $db->insert ('_metadata', $data);
-		if($id)
-		    echo ' -- row was created. Id=' . $id;
 
+		// GET DATA NAMES 
+		// use just the tracts table to get data names from columns
+		if (strpos($table["TABLE_NAME"],"tracts")){
+
+			// get the columns
+			$sql = "SELECT `COLUMN_NAME` 
+					FROM `INFORMATION_SCHEMA`.`COLUMNS` 
+					WHERE `TABLE_SCHEMA`=? AND `TABLE_NAME`=?;";
+			$cols = $db->rawQuery($sql, Array ('regionalization_full',$table["TABLE_NAME"]));
+
+			// flatten array, removing duplicates and isolating just the names
+			$cols_flat = array(); 
+			foreach($cols as $c){
+				//print $c["COLUMN_NAME"];
+				if ($c["COLUMN_NAME"] != "TID" && $c["COLUMN_NAME"] != ""){
+					// get just the name
+					$name = preg_replace("([CV,E,M]+)", "", $c["COLUMN_NAME"]); 
+					// if it isn't already in the array then add it
+					if (!in_array($name, $cols_flat)) $cols_flat[] = $name;
+				}
+
+			}	
+			// store vars for insert
+			$data = Array ("msa" => $arr[0],"scenario" => $arr[1],"data" => implode(",", $cols_flat));
+			print "\n". $table["TABLE_NAME"] ." => ". implode(",", $data);
+
+			// insert with ON DUPLICATE KEY UPDATE
+			$updateColumns = Array ("data");
+			$lastInsertId = "msa";
+			$db->onDuplicate($updateColumns, $lastInsertId);
+			$id = $db->insert ('_metadata', $data);
+
+			if($id)
+			    echo $db->count . ' records were inserted/updated';
+			else
+			    echo "update failed: " . $db->getLastError();
+
+		}
 	}
 }
 // for starting off 
-//insertMSA_Scenario(); 
+insertMSA_Scenario(); 
 
 
 ?>
