@@ -102,27 +102,44 @@ exports.get_MSA_scenario_data = function(request, reply) {
 
 
 
-// in future may need this to get only one TID
-
-exports.get_MSA_scenario_TID = function(request, reply) {
-	//if (request.params.tid) meta.params.tid = this.sanitizer.escape(request.params.tid);
-	// simple query
-	//var sql = 'SELECT * FROM '+ this.db.escapeId(meta.params.msa +'_'+ meta.params.scenario +'_input_tracts') ;
-};
 
 
+/** 
+ * 	Return list of MSA + scenario + data types
+ *	
+ *	TEST: http://localhost:3000/_metadata/{msa?}
+ *		  http://localhost:3000/_metadata		<---- all MSAs
+ *		  http://localhost:3000/_metadata/10180 <---- specific MSA
+ *		  http://localhost:3000/_metadata/16740
+ */
 // return all msa/scenarios
 exports.get_metadata = function(request, reply) {
 	var timer = new Date();
 	var meta = { request: "get_metadata", took: 0 }
+	var sql = "SELECT msa,scenario,data,description FROM _metadata ";
+	console.log(request.params);
 
+	// if params received
+	if (request.params && request.params.msa){
+		// sanitize input
+		meta.params = { msa: this.sanitizer.escape(request.params.msa) };
 
-
-	var sql = 'SELECT msa,scenario,data,description FROM _metadata ORDER BY msa;';
-
+		// validate MSA: is it a valid int between min/max?
+		if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 })){
+			return reply('that MSA does not exist').code(404);
+		}
+		else{
+			sql += ' WHERE msa='+ meta.params.msa;
+		}
+	}
+	// finish sql
+	sql += ' ORDER BY msa;';
 
 	console.log(sql);
 
+
+
+/**/
 	// perform query
 	this.db.query(sql, function (error, results, fields) {
 		if (error) throw error;
@@ -138,6 +155,19 @@ exports.get_metadata = function(request, reply) {
 };
 
 
+
+
+
+
+
+
+// in future may need this to get only one TID
+
+exports.get_MSA_scenario_TID = function(request, reply) {
+	//if (request.params.tid) meta.params.tid = this.sanitizer.escape(request.params.tid);
+	// simple query
+	//var sql = 'SELECT * FROM '+ this.db.escapeId(meta.params.msa +'_'+ meta.params.scenario +'_input_tracts') ;
+};
 // catch everything
 exports.catchAll_api = function(request, reply) {
 	return reply('that endpoint requires an msa/scenario/datatype').code(404);

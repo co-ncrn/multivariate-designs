@@ -18,7 +18,7 @@ module.exports = [
 		handler: Handlers.get_MSA_scenario_data
 	},{
 		method: 'GET',
-		path: '/api/_metadata',
+		path: '/api/_metadata/{msa?}',
 		handler: Handlers.get_metadata
 	},{
 		method: 'GET',
