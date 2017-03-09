@@ -137,7 +137,6 @@ function dec_conv(num){
 }
 
 
-
 var scenarios_data = {
 	"gen": ["occupied","married","bachdeg","samehous","white","black","hisp","under18","65over","avgrooms","avghhinc","pphh"],
 	"hous": ["occupied","pctown","pctrent","snglfmly","avgrooms","avghmval","avgrent"],
@@ -145,9 +144,29 @@ var scenarios_data = {
 	"trans": ["drvlone","transit","vehiclpp","avgcmmte"]
 };
 
+
+function returnMSAs(){
+	d3.json("http://localhost:3000/api/_metadata", function(error, json) {
+		if (error) return console.warn(error);
+		//console.log(json.response);
+
+
+
+		return json.response;
+	});
+}
+var msas = returnMSAs();
+
+
+
+
+
 var shtml = '';
 // add buttons for ALL data sources
-for (var i in scenarios_data){
+for (var i in msas){
+
+	//
+
 
 	$(".sources").append('<br>'+ i +": ");
 

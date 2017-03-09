@@ -1,0 +1,73 @@
+
+
+#chart-container { height:360px; width:600px; overflow-y:auto; }
+
+
+
+#chart { }
+
+
+#chart table { border-collapse: collapse; font: 12px sans-serif; width: 500px; }
+#chart th { font-weight: normal; text-align: center; padding: 6px; min-width: 40px; }
+#chart th svg { height: 22; }
+#chart tbody td { padding: 0px 5px; text-align: center; }
+#chart tbody td.svgCell { text-align: left; margin:0; padding:0; }
+#chart tbody td.svgCell svg { }
+.svgBar { fill: red; }
+
+.tid:hover, .rid:hover { cursor: pointer; cursor: hand; } 
+
+td.highlight {
+    background-color: #81b2c1
+}
+
+/*
+#chart tbody tr:first-child td { padding-top: 2px; }
+
+#chart tbody rect { fill: "#990000"; }
+#chart tbody tr:hover rect { fill: brown; }
+*/
+
+
+
+
+.tick text { stroke-width: 1px; opacity: 1.0; }
+.tick line { stroke-width: 1px; opacity: .2; }
+
+
+
+.headings {  }
+
+
+
+
+
+.axis text { font-size: 12px; }
+.axis path { display: none; }
+
+
+
+
+
+.button_sliding_bg_left, .button_sliding_bg_right {
+    background: #fff;
+    padding: 15px 10px;
+    margin: 0px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 0 #a8d3dd;
+	-webkit-transition: all ease 0.8s;
+	-moz-transition: all ease 0.8s;
+	transition: all ease 0.9s;
+}
+ /*
+.button_sliding_bg_left:hover {
+   box-shadow: inset -200px 0 0 0 #a8d3dd;
+}
+
+.button_sliding_bg_right:hover {
+    box-shadow: inset 200px 0 0 0 #a8d3dd;
+}
+*/
+
+

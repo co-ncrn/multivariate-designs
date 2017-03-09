@@ -5,3 +5,6 @@ vendor/
 
 node_modules/
 mysql_keys.js
+
+vendor/
+bower_components/

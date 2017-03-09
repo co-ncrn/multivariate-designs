@@ -79,7 +79,7 @@ exports.get_MSA_scenario_data = function(request, reply) {
 	var sql = 'SELECT t.TID, c.RID, '+
 					't.'+data+'E as t_'+data+'E, r.'+data+'E as r_'+data+'E, ' +
 					't.'+data+'M as t_'+data+'M, r.'+data+'M as r_'+data+'M, ' + 
-					't.'+data+'CV as t_'+data+'CV, r.'+data+'CV as r_'+data+'CV ';
+					't.'+data+'CV as t_'+data+'CV, r.'+data+'CV as r_'+data+'CV ' +
 				'FROM '+ m_s +'_input_tracts t, '+
 				    m_s +'_output_regions r, '+
 				    m_s +'_crosswalk c ' +
@@ -93,15 +93,10 @@ exports.get_MSA_scenario_data = function(request, reply) {
 	this.db.query(sql, function (error, results, fields) {
 		if (error) throw error;
 
-		// test
-		//console.log('results[0].TID: ', results[0].TID);
-
-		// return all results
-		meta.response = results;
-
-		// send response
-		meta.took = new Date()-timer;
-		reply(meta);
+		//console.log('results[0].TID: ', results[0].TID); // test
+		meta.response = results;		// return all results
+		meta.took = new Date()-timer;	// update timer
+		reply(meta);					// send response
 	});
 };
 
@@ -115,6 +110,32 @@ exports.get_MSA_scenario_TID = function(request, reply) {
 	//var sql = 'SELECT * FROM '+ this.db.escapeId(meta.params.msa +'_'+ meta.params.scenario +'_input_tracts') ;
 };
 
+
+// return all msa/scenarios
+exports.get_metadata = function(request, reply) {
+	var timer = new Date();
+	var meta = { request: "get_metadata", took: 0 }
+
+
+
+	var sql = 'SELECT msa,scenario,data,description FROM _metadata ORDER BY msa;';
+
+
+	console.log(sql);
+
+	// perform query
+	this.db.query(sql, function (error, results, fields) {
+		if (error) throw error;
+
+		//console.log('results[0].TID: ', results[0].TID); // test
+		meta.response = results;		// return all results
+		meta.took = new Date()-timer;	// update timer
+		reply(meta);					// send response
+	});
+
+
+
+};
 
 
 // catch everything
