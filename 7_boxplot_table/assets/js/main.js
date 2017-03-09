@@ -149,17 +149,17 @@ var shtml = '';
 // add buttons for ALL data sources
 for (var i in scenarios_data){
 
+	$(".sources").append('<br>'+ i +": ");
+
 	for (var j in scenarios_data[i]){
 
-		shtml +='<p><button class="btn btn-sm data-btn" id="tract'+ i +'">'+ scenarios_data[i].name +' (tract)</button> ';
-		shtml += '<button class="btn btn-sm data-btn" id="region'+ i +'">'+ scenarios_data[i].name +' (region)</button></p>';
+		
+
+		shtml ='<a id="tract'+ i +'">'+ scenarios_data[i][j] +'</a> ';
 		$(".sources").append(shtml);
 		// add listeners
-		$("#tract"+ i).on("mouseover",function(){
+		$("#tract"+ i).on("mouseup",function(){
 			load_data(this.id.substr(this.id.length - 1),"tract",tabulate);
-		});
-		$("#region"+ i).on("mouseover",function(){
-			load_data(this.id.substr(this.id.length - 1),"region",tabulate);
 		});
 
 
