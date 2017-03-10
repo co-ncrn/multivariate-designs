@@ -116,7 +116,7 @@ exports.get_MSA_scenario_data = function(request, reply) {
 exports.get_metadata = function(request, reply) {
 	var timer = new Date();
 	var meta = { request: "get_metadata", took: 0 }
-	var sql = "SELECT msa,scenario,data,description FROM _metadata ";
+	var sql = "SELECT msa,scenario,data,description,geo FROM _metadata ";
 	console.log(request.params);
 
 	// if params received
