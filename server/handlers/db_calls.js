@@ -156,6 +156,9 @@ exports.get_metadata = function(request, reply) {
 			var msa = results[i].msa;
 			//console.log(msa);
 
+			// convert data string to an array
+			results[i].data = results[i].data.split(",");	
+
 			// if this is the first run
 			if (prev_msa == 0){
 				prev_msa = msa;				// update msa
