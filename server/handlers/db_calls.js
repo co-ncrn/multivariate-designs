@@ -127,8 +127,7 @@ exports.get_metadata = function(request, reply) {
 		// validate MSA: is it a valid int between min/max?
 		if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 })){
 			return reply('that MSA does not exist').code(404);
-		}
-		else{
+		} else {
 			sql += ' WHERE msa='+ meta.params.msa;
 		}
 	}
@@ -138,14 +137,40 @@ exports.get_metadata = function(request, reply) {
 	console.log(sql);
 
 
-
-/**/
 	// perform query
 	this.db.query(sql, function (error, results, fields) {
 		if (error) throw error;
+		console.log(results);
 
-		//console.log('results[0].TID: ', results[0].TID); // test
-		meta.response = results;		// return all results
+		// There are 3-4 of each MSA
+		// - put them in objects with the msa code as their key
+		// - format results like { msa: [ {scenario, scenario, ... }, ... ]
+		//						 {"10380":[ { a:1,b:2},{ c:3,d:4}, ... ]}
+
+		// response, temp array for scenarios, previous msa code
+		var response = {}, temp = [], prev_msa = 0;
+
+		// loop through objects
+		for(var i=0; i<results.length; i++){
+			
+			var msa = results[i].msa;
+			//console.log(msa);
+
+			// if this is the first run
+			if (prev_msa == 0){
+				prev_msa = msa;				// update msa
+			}
+			// if this is a new one
+			else if (prev_msa != msa){
+				response[msa] = temp; 		// push temp into response
+				temp = [];					// reset temp
+				prev_msa = results[i].msa;	// update msa
+			}
+			temp.push(results[i]);			// push current object
+		}
+		response[msa] = temp; // in case there was only one msa, push last temp into response
+
+		meta.response = response;		// return all results
 		meta.took = new Date()-timer;	// update timer
 		reply(meta);					// send response
 	});
