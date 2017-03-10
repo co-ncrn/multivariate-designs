@@ -5,7 +5,11 @@
  */
 
 
-var api_url = "http://localhost:3000/api/";
+var msas = [], 
+	current = { "msa":"", "scenario":"", "data":"" },
+	api_url = "http://localhost:3000/api/",
+	msa_options = "<option val=''></option>",
+	scenario_options = "<option val=''></option>";
 
 var scenarios_data = {
 	"gen": ["occupied","married","bachdeg","samehous","white","black","hisp","under18","65over","avgrooms","avghhinc","pphh"],
@@ -16,30 +20,182 @@ var scenarios_data = {
 
 
 
+var dataDict = {
+	"gen":"General",
+	"hous":"Housing",
+	"pov":"Poverty",
+	"trans":"Transportation",
+	"avgrooms":"Average rooms per housing unit",
+	"avghhinc":"Average household income",
+	"pphh":"Average persons per household",
+	"occupied":"Percent of housing units occupied",
+	"married":"Percent of households with married-couple family",
+	"bachdeg":"Percent of population age 25+ with bachelor's degree or higher ",
+	"samehous":"Percent of population that lived in the same house 1 year ago",
+	"white":"Percent of population non-Hispanic white",
+	"black":"Percent of population non-Hispanic black",
+	"hisp":"Percent of population Hispanic",
+	"under18":"Percent of population under 18",
+	"65over":"Percent of population over 65",
+	"pop":"Total population",
+	"hsincown":"Housing cost to income ratio - owners (annual)",
+	"hsincrnt":"Housing cost to income ratio - renters (annual)",
+	"chabvpov":"Percent of children above poverty",
+	"abvpov":"Percent of population above poverty",
+	"employed":"Percent of population employed",
+	"pop":"Total population",
+	"vehiclpp":"Vehicles per person",
+	"avgcmmte":"Average travel time to work",
+	"drvlone":"Percent of population who drove to work alone",
+	"transit":"Perecent of population who take public transit to work",
+	"pop":"Total population",
+	"avgrooms":"Average rooms per housing unit",
+	"avghmval":"Average home value of owner-occupied units",
+	"avgrent":"Average rent",
+	"occupied":"Percent of housing units occupied",
+	"pctown":"Percent of housing units owner-occupied",
+	"pctrent":"Percent of housing units renter-occupied",
+	"snglfmly":"Percent of housing units that are single detached units",
+	"pop":"Total population"
+}
 
-/**
- *	Build the MSA Menu
- */
-function buildMSAMenu(){
 
-	d3.json(api_url+"_metadata", function(error, json) {
-		if (error) return console.warn(error);
-		//console.log(json.response);
-		data = json.response;
-		$("#output").val( JSON.stringify(data) );
+$(document).ready(function(){
 
-		var html = "";
-		data.forEach(function(row,i){
-			html += "<a href='#'>"+ row.msa +"</a><br>";
-		});
-		$(".sources").append( html);
 
-		//return json.response;
+
+	// options
+	$("#msa_select_box").chosen({
+		disable_search_threshold: 10,
+		no_results_text: "Oops, nothing found!",
+		width: "95%"
+	});
+	$("#scenario_select_box").chosen({
+		disable_search_threshold: 10,
+		no_results_text: "Oops, nothing found!",
+		width: "95%"
+	});
+	// on change events
+	$('#msa_select_box').on('change', function(evt, params) {
+		updateScenarioMenu(params.selected);
+	});
+	$('#scenario_select_box').on('change', function(evt, params) {
+		updateData(params);
 	});
 
-	
+
+	createMSAMenu(); // get _metadata / create MSA menu
+});
+
+
+
+
+/**
+ *	Build the MSA menu when the page loads
+ */
+function createMSAMenu(){
+
+	// get data from server
+	d3.json(api_url+"_metadata", function(error, json) {
+		if (error) return console.warn(error);		// handle error
+		//console.log(data);
+		$("#output").val( "all MSAs: \n"+ JSON.stringify(json.response) );
+
+		// loop through return object
+		for (var key in json.response) {
+		    // skip loop if the property is from prototype
+		    if (!json.response.hasOwnProperty(key)) continue;
+		   	//console.log(key,data[key])
+
+		    // add MSAs to select options
+			msa_options += "<option value='"+ key +"'>"+ key +" - "+ json.response[key][0].description +"</option>";
+		}
+		msas = json.response; // update MSAs
+
+		// update select
+		$("#msa_select_box").append( msa_options ).trigger('chosen:updated');
+
+	});
 }
-buildMSAMenu();
+
+
+
+/**
+ *	Build the scenario menu based on MSA selection
+ */
+function updateScenarioMenu(_msa){
+	msa = _msa;
+	current.msa = msa;
+	console.log(msa, msas[msa]);
+
+	$("#output").val( msa +": \n"+ JSON.stringify(msas[msa]) ); // testing
+
+	// use msa to update the scenario box
+	var scenario_options = "<option val=''></option>";
+
+	// for each scenario
+	for (var i = 0; i <  msas[msa].length; i++) {
+		//console.log( msas[msa][i]);
+
+		var scenario = msas[msa][i].scenario;
+
+		// add optiongroup with scenario
+		scenario_options += "<optgroup label='"+ dataDict[ scenario ] +"'>";
+
+		// for each data type
+		for (var j = 0; j <  msas[msa][i].data.length; j++) {
+			//console.log( msas[msa][i].data[j]);
+
+			var data = msas[msa][i].data[j];
+
+			// add scenario
+			scenario_options += optionHTML(scenario +"-"+ data, dataDict[data]);
+		}
+		scenario_options += "</optgroup>";
+	}
+
+	// update options
+	$("#scenario_select_box").append( scenario_options ).trigger('chosen:updated');
+ 	// trying to open it... :-P
+	$('#scenario_select_box').trigger('chosen:open');
+
+}
+function optionHTML(val,text){
+	var option = "";
+	option += "<option value='"+ val +"'>"+ text +"</option>";
+	return option;
+}
+
+
+
+function updateData(params){
+	var p = params.selected.split("-");
+	console.log(p);
+	current.scenario = p[0];
+	current.data = p[1];
+	console.log(current)
+
+	if (!current || !current.msa || !current.scenario || !current.data)
+		return false;
+
+	// get data from server
+	d3.json(api_url + current.msa +"/"+ current.scenario +"/"+ current.data, function(error, json) {
+		if (error) return console.warn(error);		// handle error
+		//console.log(data);
+		$("#output").val( JSON.stringify(current) +": \n"+ JSON.stringify(json.response) );
+
+
+	});
+
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -104,6 +260,7 @@ function load_api_data(_msa,_scenario,_data,callback){
 		data = json;
 		console.log(data);
 	});
+
 
 
 }
