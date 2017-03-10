@@ -140,7 +140,7 @@ exports.get_metadata = function(request, reply) {
 	// perform query
 	this.db.query(sql, function (error, results, fields) {
 		if (error) throw error;
-		console.log(results);
+		//console.log(results);
 
 		// There are 3-4 of each MSA
 		// - put them in objects with the msa code as their key
@@ -165,10 +165,10 @@ exports.get_metadata = function(request, reply) {
 			}
 			// if this is a new one
 			else if (prev_msa != msa){
-				response[msa] = temp; 		// push temp into response
 				temp = [];					// reset temp
 				prev_msa = results[i].msa;	// update msa
 			}
+			response[msa] = temp; 			// push temp into response
 			temp.push(results[i]);			// push current object
 		}
 		response[msa] = temp; // in case there was only one msa, push last temp into response
