@@ -20,7 +20,7 @@ var dataDict = {
 	"65over":"Percent of population over 65",
 	"pop":"Total population",
 	"hsincown":"Housing cost to income ratio - owners (annual)",
-	"hsincrnt":"Housing cost to income ratio - renters (annual)",
+	"hsincrent":"Housing cost to income ratio - renters (annual)", 
 	"chabvpov":"Percent of children above poverty",
 	"abvpov":"Percent of population above poverty",
 	"employed":"Percent of population employed",

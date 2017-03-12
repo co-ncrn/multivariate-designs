@@ -1,16 +1,15 @@
 
 /**
- *	6_boxplot_table: A boxplot chart showing MOE (Margin of Error) in ACS data before and after regionalization
+ *	Select MSA script to test API
  *	@author Owen Mundy
  */
 
 
-var msas = [], 
-	current = { "msa":"", "scenario":"", "data":"" },
-	api_url = "http://localhost:3000/api/",
-	msa_options = "<option val=''></option>",
+var msas = [], 											// holds all the MSAs
+	current = { "msa":"", "scenario":"", "data":"" },	// object to store current data reference
+	api_url = "http://localhost:3000/api/",				// api url
+	msa_options = "<option val=''></option>",			// default empty value in select menus
 	scenario_options = "<option val=''></option>";
-
 
 
 $(document).ready(function(){
@@ -28,54 +27,76 @@ $(document).ready(function(){
 	});
 	// on chosen() change events
 	$('#msa_select_box').on('change', function(evt, params) {
-		updateScenarioMenu(params.selected);
+		updateMSA(params.selected);
 	});
 	$('#scenario_select_box').on('change', function(evt, params) {
 		updateData(params);
 	});
 
-	createMSAMenu(); // get _metadata / create MSA menu
+	init(); // load data, map, page
 });
 
 
 
 
+
 /**
- *	Build the MSA menu when the page loads
+ *	Initialize page
  */
-function createMSAMenu(){
-
-	// get data from server
-	d3.json(api_url+"_metadata", function(error, json) {
+function init(){
+	
+	// get _metadata for menus, etc.
+	d3.json(api_url+ "_metadata", function(error, json) {
 		if (error) return console.warn(error);		// handle error
+		msas = json.response; 			// update MSAs
 		//console.log(data);
-		$("#output").val( "all MSAs: \n"+ JSON.stringify(json.response) );
-
-		// loop through return object
-		for (var key in json.response) {
-		    // skip loop if the property is from prototype
-		    if (!json.response.hasOwnProperty(key)) continue;
-		   	//console.log(key,data[key])
-
-		    // add MSAs to select options
-			msa_options += "<option value='"+ key +"'>"+ key +" - "+ json.response[key][0].description +"</option>";
-		}
-		msas = json.response; // update MSAs
-
-		// update select
-		$("#msa_select_box").append( msa_options ).trigger('chosen:updated');
-
+		$("#output").val( "all MSAs: \n"+ JSON.stringify(msas) );
+		createMSAMenu(json.response); 	// create MSA menu
 	});
+
 }
 
 
+/**
+ *	Build the MSA menu when the page loads
+ */
+function createMSAMenu(json){
+
+	// loop through msas
+	for (var key in json) {
+	    if (!json.hasOwnProperty(key)) continue;	// skip loop if the property is from prototype
+	   	//console.log(key,data[key])
+
+	    // add MSAs to select options
+		msa_options += optionHTML(key, key +" - "+ json[key][0].description);
+	}
+	$("#msa_select_box").append( msa_options ).trigger('chosen:updated'); // update select
+}
+
+
+/**
+ *	Update MSA
+ * 	This changes the title, menu, chart, and map
+ */
+function updateMSA(msa){
+	current.msa = msa;			// update current obj
+	updateTitle(msa);			// update title
+	updateScenarioMenu(msa);	// update scenario menu
+	//updateChart(msa);		// update d3 data
+	//updateMap(point);			// update map data
+}
+
+
+/**
+ *	Update Title
+ */
+function updateTitle(msa){
+}
 
 /**
  *	Build the scenario menu based on MSA selection
  */
-function updateScenarioMenu(_msa){
-	msa = _msa;
-	current.msa = msa;
+function updateScenarioMenu(msa){
 	console.log(msa, msas[msa]);
 
 	$("#output").val( msa +": \n"+ JSON.stringify(msas[msa]) ); // testing
@@ -120,13 +141,12 @@ function optionHTML(val,text){
 
 function updateData(params){
 	var p = params.selected.split("-");
-	console.log(p);
 	current.scenario = p[0];
 	current.data = p[1];
-	console.log(current)
+	console.log("updateData() called", current);
 
-	if (!current || !current.msa || !current.scenario || !current.data)
-		return false;
+	//if (!current || !current.msa || !current.scenario || !current.data)
+	//	return false;
 
 	// get data from server
 	d3.json(api_url + current.msa +"/"+ current.scenario +"/"+ current.data, function(error, json) {

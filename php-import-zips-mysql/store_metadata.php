@@ -13,8 +13,6 @@ require 'inc/config.php';	 				// create database connection
 
 
 
-
-
 // updates the descriptions in the database using csa_codes
 function updateDescriptionsOnly(){
 	global $db;
@@ -81,7 +79,7 @@ function importTSV(){
 
 
 /**
- *	Loops through all data collected in tables and inserts msa,scenario in row of new table
+ *	Loops through all data collected in tables and inserts msa,scenario,data in row of new table
  */
 function insertMSA_Scenario(){
 	global $db;
@@ -136,7 +134,7 @@ function insertMSA_Scenario(){
 	}
 }
 // for starting off 
-insertMSA_Scenario(); 
+//insertMSA_Scenario(); 
 
 
 ?>
