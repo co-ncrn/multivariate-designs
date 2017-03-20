@@ -8,7 +8,7 @@
  */
 'use strict';
 
-const fs = require('./inc/functions');	// include functions file
+const fs = require('./inc/functions.js');	// include functions file
 const memwatch = require('memwatch-next');// watch for memory leaks
 const sanitizer = require('sanitizer');	// sanitize input https://www.npmjs.com/package/sanitizer
 const validator = require('validator');	// validate input https://www.npmjs.com/package/validator
@@ -51,12 +51,15 @@ db.on('error', function(err) {		// test for error
 // server binding ** call before routes! **
 server.bind({  
 	db: db, 				// bind db connection to server
-	fs: fs, 				// bind functions to server
 	sanitizer: sanitizer, 	// bind sanitizer to server
-	validator: validator 	// bind validator to server
+	validator: validator, 	// bind validator to server
+	fs: fs 				// bind functions to server
 });			
 
-server.route(require('./routes'));	// require routes
+server.route(require('./routes'));	// require routes (after binds, methods, etc.)
+
+
+
 
 
 

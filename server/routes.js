@@ -9,22 +9,27 @@ var Handlers = require('./handlers/db_calls.js');
 // export routes to server
 module.exports = [
 	{
-		method: 'GET',						
+		// root / test
+		method: 'GET',		
 		path: '/',
 		handler: Handlers.root
 	},{
+		// get all msa data
 		method: 'GET',
 		path: '/api/{msa}/{scenario}/{data}',
 		handler: Handlers.get_MSA_scenario_data
 	},{
+		// get _metadata for menus
 		method: 'GET',
 		path: '/api/_metadata/{msa?}',
 		handler: Handlers.get_metadata
 	},{
+		// catch alls 
 		method: 'GET',
 		path: '/api/{path*}',
 		handler: Handlers.catchAll_api
 	},{
+		// default
 		method: 'GET',
 		path: '/{path*}',
 		handler: Handlers.catchAll

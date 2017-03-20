@@ -53,7 +53,6 @@ exports.get_MSA_scenario_data = function(request, reply) {
 					data: this.sanitizer.escape(request.params.data) };
 
 	// validate MSA: is it a valid int between min/max?
-	//if ( this.fs.validateMSA(request.params.msa) ){
 	if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 }))
 		return reply('that MSA does not exist').code(404);
 	// validate scenario: does it exist inside scenarios_data keys?
@@ -63,6 +62,11 @@ exports.get_MSA_scenario_data = function(request, reply) {
 	if ( !this.validator.isIn(meta.params.data, scenarios_data[meta.params.scenario]))
 		return reply('that data does not exist').code(404);
 
+/*
+// testing, pain in the butt
+	if(this.fs.validateMSA(meta.params.msa,this.validator))
+		return reply('that MSA does not exist').code(404);
+*/
 
 	var data = meta.params.data;
 	var m_s = meta.params.msa +'_'+ meta.params.scenario;
