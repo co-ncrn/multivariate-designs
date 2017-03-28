@@ -78,7 +78,7 @@ server.register({								// first arg to server.register() is a plugin config ob
 	if (err) throw err;							// check for error registering the plugin
 
 	server.start((err) => {
-		if (err) throw err;						// check for error registering the plugin
+		if (err) throw err;						// check for error starting the server
 		console.log('Server running at: ', server.info.uri);
 	});
 });

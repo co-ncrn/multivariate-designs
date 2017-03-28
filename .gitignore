@@ -8,3 +8,5 @@ mysql_keys.js
 
 vendor/
 bower_components/
+
+geojson/
