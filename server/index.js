@@ -7,13 +7,13 @@
  *	on reboot: http://stackoverflow.com/a/21847976/441878
  */
 'use strict';
+var os = require('os'); os.tmpDir = os.tmpdir;	// hide annoying mac error
 
 const fs = require('./inc/functions.js');	// include functions file
-const memwatch = require('memwatch-next');// watch for memory leaks
-const sanitizer = require('sanitizer');	// sanitize input https://www.npmjs.com/package/sanitizer
-const validator = require('validator');	// validate input https://www.npmjs.com/package/validator
-
-const Boom = require('boom');
+const memwatch = require('memwatch-next');	// watch for memory leaks
+const sanitizer = require('sanitizer');		// sanitize input https://www.npmjs.com/package/sanitizer
+const validator = require('validator');		// validate input https://www.npmjs.com/package/validator
+const Boom = require('boom');				// HTTP-friendly error objects https://github.com/hapijs/boom
 const Netmask = require('netmask').Netmask;
 
 
@@ -54,6 +54,7 @@ db.on('error', function(err) {		// test for error
 
 // server binding ** call before routes! **
 server.bind({  
+	Boom: Boom,
 	db: db, 				// bind db connection to server
 	sanitizer: sanitizer, 	// bind sanitizer to server
 	validator: validator, 	// bind validator to server
@@ -63,24 +64,32 @@ server.bind({
 server.route(require('./routes'));	// require routes (after binds, methods, etc.)
 
 
-// list of blocked subnets
+
+
+
+// list of blocked IP/subnets
+// get more:
+// http://www.wizcrafts.net/iptables-blocklists.html
 const blacklist = [
-	'80.82.70.0',
-	'127.0.0.1'
+	'80.82.70.0'
+//	'127.0.0.1' // me/test
 ];
-const blockIPs = function (request,reply){
-	const ip = request.info.remoteAddress;		// get client's ip
+const blockIPs = function (request,reply){		// define extension function
+	const ip = request.info.remoteAddress;		// get client's IP
 	console.log("client ip: ",ip);
-	for (let i=0; i < blacklist.length; ++i){
+	for (let i=0; i < blacklist.length; ++i){	// check each subnet in blacklist
 		const block = new Netmask(blacklist[i]);
-		if (block.contains(ip)){
+		if (block.contains(ip)){				// check if client IP is within blocked subnet
 			console.log('Blocking request from ' + ip + '. Within blocked subnet ' + blacklist[i]);
-			return reply(Boom.forbidden());
-		}
+			return reply(Boom.forbidden());		// set response to Boom.forbidden() (403) error,
+		}										// 	hand control back to hapi
 	}
-	reply.continue();
-}
-server.ext('onRequest', blockIPs);
+	reply.continue();							// if client IP doesn't match any blocked subnet,
+}												//	hand control back to hapi, proceed as normal 
+server.ext('onRequest', blockIPs);				// attach blockIPs function to the onRequest extension point
+
+
+
 
 
 

@@ -45,7 +45,7 @@ exports.get_MSA_scenario_data = function(request, reply) {
 
 	// confirm required params received
 	if (!request.params || (!request.params.msa || !request.params.scenario || !request.params.data))
-		return reply('Missing parameter(s)').code(404);
+		return reply( this.Boom.notFound('Missing parameter(s)') );
 
 	// sanitize input
 	meta.params = { msa: this.sanitizer.escape(request.params.msa), 
@@ -53,19 +53,20 @@ exports.get_MSA_scenario_data = function(request, reply) {
 					data: this.sanitizer.escape(request.params.data) };
 
 	// validate MSA: is it a valid int between min/max?
-	if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 }))
-		return reply('that MSA does not exist').code(404);
+	if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 })){
+		return reply( this.Boom.notFound('That MSA does not exist') );
+	}
 	// validate scenario: does it exist inside scenarios_data keys?
 	if ( !this.validator.isIn(meta.params.scenario, scenarios))
-		return reply('that scenario does not exist').code(404);
+		return reply( this.Boom.notFound('That scenario does not exist') );
 	// validate data: does it exist inside scenarios_data object?
 	if ( !this.validator.isIn(meta.params.data, scenarios_data[meta.params.scenario]))
-		return reply('that data does not exist').code(404);
+		return reply( this.Boom.notFound('That data does not exist') );
 
 /*
 // testing, pain in the butt
 	if(this.fs.validateMSA(meta.params.msa,this.validator))
-		return reply('that MSA does not exist').code(404);
+		return reply( this.Boom.notFound('That MSA does not exist') );
 */
 
 	var data = meta.params.data;
@@ -130,7 +131,7 @@ exports.get_metadata = function(request, reply) {
 
 		// validate MSA: is it a valid int between min/max?
 		if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 })){
-			return reply('that MSA does not exist').code(404);
+			return reply( this.Boom.notFound('That MSA does not exist') );
 		} else {
 			sql += ' WHERE msa='+ meta.params.msa;
 		}
@@ -200,12 +201,18 @@ exports.get_MSA_scenario_TID = function(request, reply) {
 	// simple query
 	//var sql = 'SELECT * FROM '+ this.db.escapeId(meta.params.msa +'_'+ meta.params.scenario +'_input_tracts') ;
 };
+
+
+
+
+
 // catch everything
 exports.catchAll_api = function(request, reply) {
-	return reply('that endpoint requires an msa/scenario/datatype').code(404);
+	return reply( this.Boom.notFound('That endpoint requires an msa/scenario/datatype') );
 };
 // catch everything
 exports.catchAll = function(request, reply) {
-	return reply('that endpoint does not exist').code(404);	
+	//return reply('that endpoint does not exist').code(404); // simple version
+	return reply( this.Boom.notFound('That endpoint does not exist') );
 };
 
