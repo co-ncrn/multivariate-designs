@@ -13,6 +13,10 @@ const memwatch = require('memwatch-next');// watch for memory leaks
 const sanitizer = require('sanitizer');	// sanitize input https://www.npmjs.com/package/sanitizer
 const validator = require('validator');	// validate input https://www.npmjs.com/package/validator
 
+const Boom = require('boom');
+const Netmask = require('netmask').Netmask;
+
+
 const Hapi = require('hapi');		// load hapi server module
 const server = new Hapi.Server();	// create hapi server object
 
@@ -59,10 +63,24 @@ server.bind({
 server.route(require('./routes'));	// require routes (after binds, methods, etc.)
 
 
-
-
-
-
+// list of blocked subnets
+const blacklist = [
+	'80.82.70.0',
+	'127.0.0.1'
+];
+const blockIPs = function (request,reply){
+	const ip = request.info.remoteAddress;		// get client's ip
+	console.log("client ip: ",ip);
+	for (let i=0; i < blacklist.length; ++i){
+		const block = new Netmask(blacklist[i]);
+		if (block.contains(ip)){
+			console.log('Blocking request from ' + ip + '. Within blocked subnet ' + blacklist[i]);
+			return reply(Boom.forbidden());
+		}
+	}
+	reply.continue();
+}
+server.ext('onRequest', blockIPs);
 
 
 
