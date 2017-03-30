@@ -13,6 +13,9 @@ const fs = require('./inc/functions.js');	// include functions file
 const memwatch = require('memwatch-next');	// watch for memory leaks
 const sanitizer = require('sanitizer');		// sanitize input https://www.npmjs.com/package/sanitizer
 const validator = require('validator');		// validate input https://www.npmjs.com/package/validator
+
+const Joi = require('joi');
+
 const Boom = require('boom');				// HTTP-friendly error objects https://github.com/hapijs/boom
 const Netmask = require('netmask').Netmask;
 
@@ -54,6 +57,7 @@ db.on('error', function(err) {		// test for error
 
 // server binding ** call before routes! **
 server.bind({  
+	Joi: Joi,
 	Boom: Boom,
 	db: db, 				// bind db connection to server
 	sanitizer: sanitizer, 	// bind sanitizer to server
@@ -61,7 +65,7 @@ server.bind({
 	fs: fs 				// bind functions to server
 });			
 
-server.route(require('./routes'));	// require routes (after binds, methods, etc.)
+
 
 
 
@@ -102,8 +106,9 @@ server.register({								// first arg to server.register() is a plugin config ob
 		}]
 	}
 }, (err) => {									// second arg to server.register() is a callback
-	if (err) throw err;							// check for error registering the plugin
+	if (err) throw err;							// check for error registering the plugin(s)
 
+	server.route(require('./routes'));			// require routes (after binds, methods, etc.)
 	server.start((err) => {
 		if (err) throw err;						// check for error starting the server
 		console.log('Server running at: ', server.info.uri);

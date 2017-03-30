@@ -52,16 +52,34 @@ exports.get_MSA_scenario_data = function(request, reply) {
 					scenario: this.sanitizer.escape(request.params.scenario), 
 					data: this.sanitizer.escape(request.params.data) };
 
+
+/*
+	const schema = {
+		msa: this.Joi.number().min(10180).max(49740).required(),
+		scenario: this.Joi.string().valid( scenarios ).required(),
+		data: this.Joi.string().valid( scenarios_data[meta.params.scenario] ).required()
+	};				
+
+	this.Joi.validate(meta.params, schema, (err, data) => {
+		if (err && err.details) { 
+			//console.log("schema",schema);
+			console.log("err",err);
+			return reply( this.Boom.notFound( err.details[0].message ) );
+		}	
+	});
+
+*/
 	// validate MSA: is it a valid int between min/max?
-	if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 })){
+	if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 }))
 		return reply( this.Boom.notFound('That MSA does not exist') );
-	}
 	// validate scenario: does it exist inside scenarios_data keys?
 	if ( !this.validator.isIn(meta.params.scenario, scenarios))
 		return reply( this.Boom.notFound('That scenario does not exist') );
 	// validate data: does it exist inside scenarios_data object?
 	if ( !this.validator.isIn(meta.params.data, scenarios_data[meta.params.scenario]))
 		return reply( this.Boom.notFound('That data does not exist') );
+
+
 
 /*
 // testing, pain in the butt
@@ -92,7 +110,7 @@ exports.get_MSA_scenario_data = function(request, reply) {
 				'ORDER BY RID;';
 
 
-	console.log(sql);
+	console.log("sql: ",sql);
 
 	// perform query
 	this.db.query(sql, function (error, results, fields) {
