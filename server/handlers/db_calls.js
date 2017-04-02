@@ -2,18 +2,9 @@
  *	db_calls.js: handle requests from routes.js
  */
 
-/*
-// all the scenarios and their datatypes, for validation
-const scenarios_data = {
-	"gen": ["occupied","married","bachdeg","samehous","white","black","hisp","under18","65over","avgrooms","avghhinc","pphh"],
-	"hous": ["occupied","pctown","pctrent","snglfmly","avgrooms","avghmval","avgrent"],
-	"pov": ["chabvpov","abvpov","employed","hsincown","hsincrent"],
-	"trans": ["drvlone","transit","vehiclpp","avgcmmte"]
-};
-//var scenarios = ["gen","hous","pov","trans"];
-const scenarios = Object.keys(scenarios_data);
-*/
+'use strict';
 
+// require globals
 const Globals = require('../inc/globals.js');
 
 
@@ -45,8 +36,8 @@ exports.get_MSA_scenario_data = function(request, reply) {
 	var timer = new Date();
 	var meta = { request: "get_MSA_scenario_data", params: {}, took: 0 }
 
-	var scenarios_data = Globals.getScenariosData();
-	var scenarios = Globals.getScenariosKeys();
+	var scenariosData = Globals.getScenariosData();
+	var scenarios = Globals.getScenarios();
 
 
 
@@ -67,10 +58,10 @@ exports.get_MSA_scenario_data = function(request, reply) {
 		// is msa a valid int between min/max? 
 		return reply( this.Boom.notFound('That MSA does not exist') );
 	if ( !this.Validator.isIn(meta.params.scenario, scenarios))
-		// does scenario exist inside scenarios_data keys?
+		// does scenario exist inside scenariosData keys?
 		return reply( this.Boom.notFound('That scenario does not exist') );
-	if ( !this.Validator.isIn(meta.params.data, scenarios_data[meta.params.scenario]))
-		// does data exist inside scenarios_data object?
+	if ( !this.Validator.isIn(meta.params.data, scenariosData[meta.params.scenario]))
+		// does data exist inside scenariosData object?
 		return reply( this.Boom.notFound('That data does not exist') );
 
 

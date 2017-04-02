@@ -1,4 +1,3 @@
-
 /**
  *	Regionalization Server
  *	@requires: node, npm, etc.
@@ -6,11 +5,9 @@
  *	$ forever start index.js
  *	on reboot: http://stackoverflow.com/a/21847976/441878
  */
+
 'use strict';
 var os = require('os'); os.tmpDir = os.tmpdir;	// hide annoying mac error
-
-
-
 
 
 const fs = require('./inc/functions.js');	// include functions file
@@ -107,9 +104,12 @@ server.register([{								// first arg to server.register() is array to register
 			events: { response: '*' }			// specify that reporter report all response events
 		}]
 	}
-}/*,{
-	register: require('./plugins/globals')
-}*/], (err) => {									// second arg to server.register() is a callback
+},{
+	register: require('hapi-etags'),			// adds eTags to Hapi https://github.com/mtharrison/hapi-etags
+	options: {
+	
+	}
+}], (err) => {									// second arg to server.register() is a callback
 	if (err) throw err;							// check for error registering the plugin(s)
 
 	server.route(require('./routes'));			// require routes (after binds, methods, etc.)
