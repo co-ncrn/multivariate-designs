@@ -4,7 +4,8 @@
 
 'use strict';
 
-var Handlers = require('./handlers/db_calls.js');
+const Handlers = require('./handlers/db_calls.js');
+
 
 // export routes to server
 module.exports = [

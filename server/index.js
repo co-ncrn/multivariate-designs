@@ -9,14 +9,17 @@
 'use strict';
 var os = require('os'); os.tmpDir = os.tmpdir;	// hide annoying mac error
 
+
+
+
+
 const fs = require('./inc/functions.js');	// include functions file
 const memwatch = require('memwatch-next');	// watch for memory leaks
 const sanitizer = require('sanitizer');		// sanitize input https://www.npmjs.com/package/sanitizer
 const validator = require('validator');		// validate input https://www.npmjs.com/package/validator
-
-const Joi = require('joi');
-
 const Boom = require('boom');				// HTTP-friendly error objects https://github.com/hapijs/boom
+
+
 const Netmask = require('netmask').Netmask;
 
 
@@ -57,12 +60,11 @@ db.on('error', function(err) {		// test for error
 
 // server binding ** call before routes! **
 server.bind({  
-	Joi: Joi,
 	Boom: Boom,
 	db: db, 				// bind db connection to server
-	sanitizer: sanitizer, 	// bind sanitizer to server
-	validator: validator, 	// bind validator to server
-	fs: fs 				// bind functions to server
+	Sanitizer: sanitizer, 	// bind sanitizer to server
+	Validator: validator, 	// bind validator to server
+	fs: fs 					// bind functions to server
 });			
 
 
@@ -97,7 +99,7 @@ server.ext('onRequest', blockIPs);				// attach blockIPs function to the onReque
 
 
 
-server.register({								// first arg to server.register() is a plugin config object
+server.register([{								// first arg to server.register() is array to register plugins
 	register: require('good'),					// load 'good' module as register option
 	options: {									// options object for plugin
 		reporters: [{							// specify range of reporters
@@ -105,7 +107,9 @@ server.register({								// first arg to server.register() is a plugin config ob
 			events: { response: '*' }			// specify that reporter report all response events
 		}]
 	}
-}, (err) => {									// second arg to server.register() is a callback
+}/*,{
+	register: require('./plugins/globals')
+}*/], (err) => {									// second arg to server.register() is a callback
 	if (err) throw err;							// check for error registering the plugin(s)
 
 	server.route(require('./routes'));			// require routes (after binds, methods, etc.)

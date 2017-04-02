@@ -2,7 +2,7 @@
  *	db_calls.js: handle requests from routes.js
  */
 
-
+/*
 // all the scenarios and their datatypes, for validation
 const scenarios_data = {
 	"gen": ["occupied","married","bachdeg","samehous","white","black","hisp","under18","65over","avgrooms","avghhinc","pphh"],
@@ -12,6 +12,10 @@ const scenarios_data = {
 };
 //var scenarios = ["gen","hous","pov","trans"];
 const scenarios = Object.keys(scenarios_data);
+*/
+
+const Globals = require('../inc/globals.js');
+
 
 
 /** 
@@ -41,6 +45,11 @@ exports.get_MSA_scenario_data = function(request, reply) {
 	var timer = new Date();
 	var meta = { request: "get_MSA_scenario_data", params: {}, took: 0 }
 
+	var scenarios_data = Globals.getScenariosData();
+	var scenarios = Globals.getScenariosKeys();
+
+
+
 	console.log(request.params);
 
 	// confirm required params received
@@ -48,42 +57,27 @@ exports.get_MSA_scenario_data = function(request, reply) {
 		return reply( this.Boom.notFound('Missing parameter(s)') );
 
 	// sanitize input
-	meta.params = { msa: this.sanitizer.escape(request.params.msa), 
-					scenario: this.sanitizer.escape(request.params.scenario), 
-					data: this.sanitizer.escape(request.params.data) };
+	meta.params = { msa: this.Sanitizer.escape(request.params.msa), 
+					scenario: this.Sanitizer.escape(request.params.scenario), 
+					data: this.Sanitizer.escape(request.params.data) };
 
 
-/*
-	const schema = {
-		msa: this.Joi.number().min(10180).max(49740).required(),
-		scenario: this.Joi.string().valid( scenarios ).required(),
-		data: this.Joi.string().valid( scenarios_data[meta.params.scenario] ).required()
-	};				
-
-	this.Joi.validate(meta.params, schema, (err, data) => {
-		if (err && err.details) { 
-			//console.log("schema",schema);
-			console.log("err",err);
-			return reply( this.Boom.notFound( err.details[0].message ) );
-		}	
-	});
-
-*/
-	// validate MSA: is it a valid int between min/max?
-	if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 }))
+	// VALIDATION
+	if ( !this.Validator.isInt(meta.params.msa, { min: 10180, max: 49740 }))
+		// is msa a valid int between min/max? 
 		return reply( this.Boom.notFound('That MSA does not exist') );
-	// validate scenario: does it exist inside scenarios_data keys?
-	if ( !this.validator.isIn(meta.params.scenario, scenarios))
+	if ( !this.Validator.isIn(meta.params.scenario, scenarios))
+		// does scenario exist inside scenarios_data keys?
 		return reply( this.Boom.notFound('That scenario does not exist') );
-	// validate data: does it exist inside scenarios_data object?
-	if ( !this.validator.isIn(meta.params.data, scenarios_data[meta.params.scenario]))
+	if ( !this.Validator.isIn(meta.params.data, scenarios_data[meta.params.scenario]))
+		// does data exist inside scenarios_data object?
 		return reply( this.Boom.notFound('That data does not exist') );
 
 
 
 /*
 // testing, pain in the butt
-	if(this.fs.validateMSA(meta.params.msa,this.validator))
+	if(this.fs.validateMSA(meta.params.msa,this.Validator))
 		return reply( this.Boom.notFound('That MSA does not exist') );
 */
 
@@ -145,10 +139,10 @@ exports.get_metadata = function(request, reply) {
 	// if params received
 	if (request.params && request.params.msa){
 		// sanitize input
-		meta.params = { msa: this.sanitizer.escape(request.params.msa) };
+		meta.params = { msa: this.Sanitizer.escape(request.params.msa) };
 
 		// validate MSA: is it a valid int between min/max?
-		if ( !this.validator.isInt(meta.params.msa, { min: 10180, max: 49740 })){
+		if ( !this.Validator.isInt(meta.params.msa, { min: 10180, max: 49740 })){
 			return reply( this.Boom.notFound('That MSA does not exist') );
 		} else {
 			sql += ' WHERE msa='+ meta.params.msa;
@@ -215,7 +209,7 @@ exports.get_metadata = function(request, reply) {
 // in future may need this to get only one TID
 
 exports.get_MSA_scenario_TID = function(request, reply) {
-	//if (request.params.tid) meta.params.tid = this.sanitizer.escape(request.params.tid);
+	//if (request.params.tid) meta.params.tid = this.Sanitizer.escape(request.params.tid);
 	// simple query
 	//var sql = 'SELECT * FROM '+ this.db.escapeId(meta.params.msa +'_'+ meta.params.scenario +'_input_tracts') ;
 };
