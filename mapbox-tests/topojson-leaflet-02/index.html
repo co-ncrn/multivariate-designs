@@ -46,28 +46,7 @@ a, a:hover, a:visited, a:link { color: #568590; text-decoration: none; }
 
 <script>
 
-/**
 
-STEPS:
-
-1. Run removeGeojsonProps on .geojson file
-
-
-2. Convert to topojson
-$ geo2topo tracts=16740_tract2.geojson > 16740_tract3.topojson
-
-3. Simplify
-$ toposimplify -p 1 -f < 16740_tract2.topojson > 16740_tract2-simple.topojson
-
-4. Quantize
-$ topoquantize 1e5 < 16740_tract2-simple.topojson > 16740_tract2-simple-quantized.topojson
-
-$ topoquantize 1e6 < 16740_tract2.topojson > 16740_tract2-quantized-1e6.topojson 
-
-https://medium.com/@mbostock/command-line-cartography-part-3-1158e4c55a1e#.wx9x6jxh9
-
-
-*/
 
 
 var state = {};
