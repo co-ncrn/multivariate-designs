@@ -119,18 +119,12 @@ function dec_conv(num){
 
 	var decimal = 1000;
 	
-	if (num > 1000) {
-		var decimal = 1;
-	} else if (num > 100){
-		var decimal = 10;
-	} else if (num > 10){
-		var decimal = 10;
-	} else if (num > 1){
-		var decimal = 1000;
-	} else if (num > .1){
-		var decimal = 1000;
-	} else if (num > .01){
-		var decimal = 1000;
+	if (num > 1000) {		var decimal = 1;
+	} else if (num > 100){ 	var decimal = 10;
+	} else if (num > 10){	var decimal = 10;
+	} else if (num > 1){	var decimal = 1000;
+	} else if (num > .1){ 	var decimal = 1000;
+	} else if (num > .01){ 	var decimal = 1000;
 	}
 	num = Math.round(num * decimal) / decimal;
 	return num;
