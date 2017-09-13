@@ -262,6 +262,11 @@ function tabulate(data,status) {
 
 	//['TID','RID',cdo.est,cdo.err]
 
+
+
+	//************ SCALES ************
+
+
 	// Y-SCALE: based on number of data
 	var yScale = d3.scaleLinear()
 		.domain([0,limit])
@@ -279,6 +284,7 @@ function tabulate(data,status) {
 
 
 
+	//************ TABLE ************
 
 	// set the update selection:
 	var rows = tbody.selectAll('tr')
@@ -301,6 +307,10 @@ function tabulate(data,status) {
 	rowsEnter.append('td')
 	    .attr("class", "err")
 	    .text(function(d) { return d[cdo.err];; });
+
+
+
+	//************ SVG ************
 
 	// append svg cell
 	var svg = rowsEnter.append('td')
@@ -344,6 +354,9 @@ function tabulate(data,status) {
 		.text(function(d) { return d.RID; });
 	d3.selectAll(".est").data(data).attr("row",function(d,i) { return i; }).text(function(d) { return d[cdo.est]; });
 	d3.selectAll(".err").data(data).attr("row",function(d,i) { return i; }).text(function(d) { return d[cdo.err]; });
+
+
+
 	d3.selectAll(".svgCell").data(data).attr("row",function(d,i) { return i; })
 
 	// select svgs by class, rebind data, and set transitions
@@ -372,11 +385,14 @@ function tabulate(data,status) {
 			});
 
 
+
+	//************ INTERACTION ************
+
+
 	d3.selectAll(".tid")
 	    .on("mouseover", selectTID);
 	d3.selectAll(".rid")
 	    .on("mouseover", selectRID);
-
 
 		
 	function selectRow(r){
@@ -402,7 +418,7 @@ function tabulate(data,status) {
 
 
 
-	create_scatterplot_axes(data,yScale,xScale,cdo.err,cdo.est);
+	create_axes(data,yScale,xScale,cdo.err,cdo.est);
 /*	*/
 }
 
@@ -461,7 +477,7 @@ function update_data(data,status){
  *	@param {Float} err - "tractError" or "regionError" from above
  *	@param {Float} est - "tractEst" or "regionEst" from above
  */
-function create_scatterplot_axes(data,yScale,xScale,err,est){
+function create_axes(data,yScale,xScale,err,est){
 
 	// keep tick labels from overlapping
 	var ticks = 5;

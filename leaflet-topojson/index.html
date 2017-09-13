@@ -1,0 +1,181 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+<meta charset="UTF-8">
+<title>maps with leaflet & topojson</title>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<style>
+html,body,#worldmap{
+height:100%;
+}
+</style>
+</head>  
+<body>  
+<div id="nav" style="width: 10%; float: left;">
+	<a href="#" id="link1">16860</a><br>
+	<a href="#" id="link2">17420</a><br>
+	<a href="#" id="link3">26620</a><br>
+</div>  
+<div id="worldmap" style="width: 90%; float: left;"></div>  
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+
+// create map
+var map = L.map('worldmap').setView([34.9523519,-85.4532727], 9);
+
+// add background
+L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+    id: 'mapbox.light', // testing: 'mapbox.streets'
+    opacity: 0.7,
+    accessToken: 'pk.eyJ1Ijoib3dlbm11bmR5IiwiYSI6ImNpd3o4M3dvejAxMHkyeW1neTQxMzlxamkifQ.mRigBfiIBYYqOMAftwkvbQ'
+}).addTo(map);
+
+// create topojson by extending geojson class
+L.TopoJSON = L.GeoJSON.extend({  
+	addData: function(jsonData) {    
+		if (jsonData.type === "Topology") {
+			for (key in jsonData.objects) {
+				geojson = topojson.feature(jsonData, jsonData.objects[key]);
+				L.GeoJSON.prototype.addData.call(this, geojson);
+			}
+		}    
+		else {
+			L.GeoJSON.prototype.addData.call(this, jsonData);
+		}
+	}  
+});
+
+
+
+
+
+
+var topoLayer  = {};
+
+
+
+function addTopoData(msa){  
+	$.getJSON('../../regionalization-website/data/tracts/topojson_quantized_1e6/'+msa+'_tract.topojson', function(data){
+		if (topoLayer)
+			map.removeLayer(topoLayer)
+		topoLayer = new L.TopoJSON();
+		console.log(data);
+		topoLayer.addData(data);
+		topoLayer.addTo(map);
+		//group = L.featureGroup().addTo(map);
+		topoLayer.eachLayer(handleLayer);
+		listLayers();
+	})
+}
+
+
+/*
+var colorScale = chroma  
+  .scale(['#D5E3FF', '#003171'])
+  .domain([0,1]);
+*/
+function handleLayer(layer){  
+	/*
+	var randomValue = Math.random(),
+	fillColor = colorScale(randomValue).hex();
+
+	layer.setStyle({
+		fillColor : fillColor,
+		fillOpacity: 1,
+		color:'#555',
+		weight:1,
+		opacity:0.5
+	});
+*/
+	layer.on({
+		mouseover: enterLayer,
+		//mouseout: leaveLayer
+	});
+}
+
+
+var $tooltip = $('.country-name');
+
+function enterLayer(){  
+
+  //console.log(JSON.stringify(this.feature.id));
+  /*
+  $tooltip.text(countryName).show();
+
+  this.bringToFront();
+  this.setStyle({
+    weight:2,
+    opacity: 1
+  });
+  */
+}
+
+function leaveLayer(){  
+  $tooltip.hide();
+
+  this.bringToBack();
+  this.setStyle({
+    weight:1,
+    opacity:.5
+  });
+}
+
+
+
+var currentTractIds = {};
+
+$('#link1').on('click', function(){
+	//console.log(L.getLayers());
+	addTopoData(16860);
+})
+$('#link2').on('click', function(){
+	//console.log(L.getLayers());
+	addTopoData(17420);
+})
+$('#link3').on('click', function(){
+	//console.log(L.getLayers());
+	addTopoData(26620);
+})
+
+
+function listLayers(){
+
+	topoLayer.eachLayer(function(layer) {
+	 // layer.layerID = tempID;
+	 // tempID+=1;
+	  //layer.bindPopup('Layer ID: ' + layer.layerID);
+
+
+	  	//currentTractIds
+
+
+	  	if (layer.feature.id == "g13083040101"){
+
+	  		layer.setStyle({
+		        'weight': 1,
+		        'fillOpacity': .75,
+		        'fillColor': "#0077c8",
+		        'opacity': .75,
+		        'color': "#0077c8"
+		      });
+	  	}
+
+		console.log(layer.feature.id);
+
+	});
+
+}
+
+
+
+
+
+
+
+</script>
+</body>  
+</html>
